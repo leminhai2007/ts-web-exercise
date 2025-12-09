@@ -1,11 +1,19 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { projects } from '../data/projects';
 import '../styles/HomePage.css';
 
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export const HomePage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstallable, setIsInstallable] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     // Get all unique categories
     const allCategories = useMemo(() => {
@@ -25,6 +33,47 @@ export const HomePage = () => {
         });
     }, [searchTerm, selectedCategory]);
 
+    // Handle PWA installation
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
+            setIsInstallable(true);
+        };
+
+        const handleAppInstalled = () => {
+            setDeferredPrompt(null);
+            setIsInstallable(false);
+        };
+
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.addEventListener('appinstalled', handleAppInstalled);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener('appinstalled', handleAppInstalled);
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) return;
+
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+            setIsInstallable(false);
+        }
+    };
+
     return (
         <div className="home-page">
             <header className="home-header">
@@ -33,6 +82,17 @@ export const HomePage = () => {
                     My Tools & Games
                 </h1>
                 <p>A collection of interactive projects and games</p>
+                <div className="header-actions">
+                    <div className={`online-status ${isOnline ? 'online' : 'offline'}`}>
+                        <span className="status-indicator"></span>
+                        {isOnline ? 'Online' : 'Offline'}
+                    </div>
+                    {isInstallable && (
+                        <button onClick={handleInstallClick} className="install-button">
+                            📱 Install App
+                        </button>
+                    )}
+                </div>
             </header>
 
             <div className="search-section">

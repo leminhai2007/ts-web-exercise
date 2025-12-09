@@ -121,6 +121,7 @@ export const Game2048 = () => {
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
     const [won, setWon] = useState(false);
+    const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
 
     const handleMove = useCallback(
         (direction: string) => {
@@ -162,6 +163,32 @@ export const Game2048 = () => {
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, [handleMove]);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        setTouchStart({ x: touch.clientX, y: touch.clientY });
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (!touchStart) return;
+
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - touchStart.x;
+        const deltaY = touch.clientY - touchStart.y;
+        const minSwipeDistance = 30;
+
+        if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                handleMove(deltaX > 0 ? 'right' : 'left');
+            } else {
+                // Vertical swipe
+                handleMove(deltaY > 0 ? 'down' : 'up');
+            }
+        }
+
+        setTouchStart(null);
+    };
 
     const resetGame = () => {
         setBoard(initializeBoard());
@@ -214,7 +241,7 @@ export const Game2048 = () => {
                 </div>
             )}
 
-            <div className="game-board">
+            <div className="game-board" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                 {board.map((row, i) => (
                     <div key={i} className="board-row">
                         {row.map((cell, j) => (
@@ -227,7 +254,7 @@ export const Game2048 = () => {
             </div>
 
             <div className="game-instructions">
-                <p>Use arrow keys to move tiles. Combine tiles with the same number to create larger numbers!</p>
+                <p>Use arrow keys or swipe to move tiles. Combine tiles with the same number to create larger numbers!</p>
                 <div className="controls-hint">
                     <span>↑ Up</span>
                     <span>↓ Down</span>
