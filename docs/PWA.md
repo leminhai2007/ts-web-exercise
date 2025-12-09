@@ -71,16 +71,16 @@ Once installed, the app will:
 - **Service Worker Strategy**: GenerateSW (auto-generated)
 - **Update Strategy**: Auto-update with user prompt
 - **Cache Strategy**: Cache-first for fonts, network-first for pages
+- **UI Framework**: Material-UI for PWA interface components
 
 ### Files Added/Modified
 
 - `vite.config.ts` - PWA plugin configuration
 - `src/main.tsx` - Service worker registration
-- `src/components/HomePage.tsx` - Install button and offline indicator
-- `src/styles/HomePage.css` - PWA UI styles with responsive design
+- `src/App.tsx` - Material-UI theme provider and CssBaseline
+- `src/components/HomePage.tsx` - Install button and offline indicator (MUI components)
 - `src/vite-env.d.ts` - TypeScript type definitions
 - `index.html` - PWA meta tags and optimized viewport settings
-- All CSS files - Enhanced with comprehensive responsive design
 
 ### Build Output
 

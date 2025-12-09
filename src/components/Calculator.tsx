@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/Calculator.css';
+import { Box, Container, Typography, Paper, Button, IconButton, AppBar, Toolbar } from '@mui/material';
+import { ArrowBack as ArrowBackIcon, Calculate as CalculateIcon, Functions as FunctionsIcon, Dialpad as DialpadIcon } from '@mui/icons-material';
 
 type CalculatorMode = 'basic' | 'scientific';
 
@@ -157,91 +158,140 @@ export const Calculator = () => {
     };
 
     return (
-        <div className="calculator-page">
-            <div className="calculator-container">
-                <div className="page-title">
-                    <img src="/calculator.svg" alt="Calculator" className="page-icon" />
-                    <h1>Scientific Calculator</h1>
-                </div>
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
+                <Toolbar>
+                    <IconButton component={Link} to="/" edge="start" sx={{ mr: 2 }}>
+                        <ArrowBackIcon />
+                    </IconButton>
+                    <CalculateIcon sx={{ mr: 2, color: 'primary.main' }} />
+                    <Typography variant="h6" component="h1" sx={{ flexGrow: 1, color: 'text.primary', fontWeight: 600 }}>
+                        Scientific Calculator
+                    </Typography>
+                    <Button
+                        variant={mode === 'basic' ? 'outlined' : 'contained'}
+                        startIcon={mode === 'basic' ? <FunctionsIcon /> : <DialpadIcon />}
+                        onClick={toggleMode}
+                        size="small"
+                    >
+                        {mode === 'basic' ? 'Scientific Mode' : 'Basic Mode'}
+                    </Button>
+                </Toolbar>
+            </AppBar>
 
-                <div className="calculator-header">
-                    <Link to="/" className="back-button">
-                        ← Back to Home
-                    </Link>
-                    <button className="mode-toggle" onClick={toggleMode}>
-                        {mode === 'basic' ? '🔬 Scientific Mode' : '🔢 Basic Mode'}
-                    </button>
-                </div>
-
-                <div className="calculator">
-                    <div className="calculator-display">{display}</div>
+            <Container maxWidth="sm" sx={{ py: 4 }}>
+                <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 3,
+                            mb: 2,
+                            bgcolor: 'grey.100',
+                            textAlign: 'right',
+                            minHeight: 80,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            borderRadius: 2,
+                        }}
+                    >
+                        <Typography variant="h3" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                            {display}
+                        </Typography>
+                    </Paper>
 
                     {mode === 'scientific' && (
-                        <div className="scientific-functions">
-                            <button onClick={() => performScientificFunction('sin')}>sin</button>
-                            <button onClick={() => performScientificFunction('cos')}>cos</button>
-                            <button onClick={() => performScientificFunction('tan')}>tan</button>
-                            <button onClick={() => performScientificFunction('ln')}>ln</button>
-                            <button onClick={() => performScientificFunction('log')}>log</button>
-                            <button onClick={() => performScientificFunction('sqrt')}>√</button>
-                            <button onClick={() => performScientificFunction('x²')}>x²</button>
-                            <button onClick={() => performOperation('^')}>x^y</button>
-                            <button onClick={() => performScientificFunction('1/x')}>1/x</button>
-                            <button onClick={() => performScientificFunction('abs')}>|x|</button>
-                            <button onClick={() => performScientificFunction('exp')}>exp</button>
-                            <button onClick={() => performOperation('mod')}>mod</button>
-                            <button onClick={() => performScientificFunction('π')}>π</button>
-                            <button onClick={() => performScientificFunction('e')}>e</button>
-                            <button onClick={() => performScientificFunction('±')}>±</button>
-                            <button onClick={handleBackspace}>⌫</button>
-                        </div>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, mb: 2 }}>
+                            {[
+                                { label: 'sin', action: () => performScientificFunction('sin') },
+                                { label: 'cos', action: () => performScientificFunction('cos') },
+                                { label: 'tan', action: () => performScientificFunction('tan') },
+                                { label: 'ln', action: () => performScientificFunction('ln') },
+                                { label: 'log', action: () => performScientificFunction('log') },
+                                { label: '√', action: () => performScientificFunction('sqrt') },
+                                { label: 'x²', action: () => performScientificFunction('x²') },
+                                { label: 'x^y', action: () => performOperation('^') },
+                                { label: '1/x', action: () => performScientificFunction('1/x') },
+                                { label: '|x|', action: () => performScientificFunction('abs') },
+                                { label: 'exp', action: () => performScientificFunction('exp') },
+                                { label: 'mod', action: () => performOperation('mod') },
+                                { label: 'π', action: () => performScientificFunction('π') },
+                                { label: 'e', action: () => performScientificFunction('e') },
+                                { label: '±', action: () => performScientificFunction('±') },
+                                { label: '⌫', action: handleBackspace },
+                            ].map((btn, idx) => (
+                                <Button key={idx} variant="outlined" onClick={btn.action} sx={{ minHeight: 50, fontSize: '0.9rem' }}>
+                                    {btn.label}
+                                </Button>
+                            ))}
+                        </Box>
                     )}
 
-                    <div className="calculator-keypad">
-                        <button className="function-btn" onClick={clearDisplay}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
+                        <Button variant="outlined" color="error" onClick={clearDisplay} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             AC
-                        </button>
-                        <button className="function-btn" onClick={clearEntry}>
+                        </Button>
+                        <Button variant="outlined" color="warning" onClick={clearEntry} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             CE
-                        </button>
-                        <button className="function-btn" onClick={handleBackspace}>
+                        </Button>
+                        <Button variant="outlined" onClick={handleBackspace} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             ⌫
-                        </button>
-                        <button className="operator-btn" onClick={() => performOperation('/')}>
+                        </Button>
+                        <Button variant="contained" onClick={() => performOperation('/')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             ÷
-                        </button>
+                        </Button>
 
-                        <button onClick={() => inputDigit('7')}>7</button>
-                        <button onClick={() => inputDigit('8')}>8</button>
-                        <button onClick={() => inputDigit('9')}>9</button>
-                        <button className="operator-btn" onClick={() => performOperation('*')}>
+                        <Button variant="outlined" onClick={() => inputDigit('7')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            7
+                        </Button>
+                        <Button variant="outlined" onClick={() => inputDigit('8')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            8
+                        </Button>
+                        <Button variant="outlined" onClick={() => inputDigit('9')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            9
+                        </Button>
+                        <Button variant="contained" onClick={() => performOperation('*')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             ×
-                        </button>
+                        </Button>
 
-                        <button onClick={() => inputDigit('4')}>4</button>
-                        <button onClick={() => inputDigit('5')}>5</button>
-                        <button onClick={() => inputDigit('6')}>6</button>
-                        <button className="operator-btn" onClick={() => performOperation('-')}>
+                        <Button variant="outlined" onClick={() => inputDigit('4')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            4
+                        </Button>
+                        <Button variant="outlined" onClick={() => inputDigit('5')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            5
+                        </Button>
+                        <Button variant="outlined" onClick={() => inputDigit('6')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            6
+                        </Button>
+                        <Button variant="contained" onClick={() => performOperation('-')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             −
-                        </button>
+                        </Button>
 
-                        <button onClick={() => inputDigit('1')}>1</button>
-                        <button onClick={() => inputDigit('2')}>2</button>
-                        <button onClick={() => inputDigit('3')}>3</button>
-                        <button className="operator-btn" onClick={() => performOperation('+')}>
+                        <Button variant="outlined" onClick={() => inputDigit('1')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            1
+                        </Button>
+                        <Button variant="outlined" onClick={() => inputDigit('2')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            2
+                        </Button>
+                        <Button variant="outlined" onClick={() => inputDigit('3')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            3
+                        </Button>
+                        <Button variant="contained" onClick={() => performOperation('+')} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             +
-                        </button>
+                        </Button>
 
-                        <button className="zero-btn" onClick={() => inputDigit('0')}>
+                        <Button variant="outlined" onClick={() => inputDigit('0')} sx={{ gridColumn: 'span 2', minHeight: 60, fontSize: '1.1rem' }}>
                             0
-                        </button>
-                        <button onClick={inputDecimal}>.</button>
-                        <button className="equals-btn" onClick={performEquals}>
+                        </Button>
+                        <Button variant="outlined" onClick={inputDecimal} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
+                            .
+                        </Button>
+                        <Button variant="contained" color="success" onClick={performEquals} sx={{ minHeight: 60, fontSize: '1.1rem' }}>
                             =
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </Button>
+                    </Box>
+                </Paper>
+            </Container>
+        </Box>
     );
 };

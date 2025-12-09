@@ -1,92 +1,204 @@
-# Styles Directory
+# Styles Documentation
 
-All CSS files are centralized in this directory for better organization and maintainability.
+## Overview
+
+This project uses **Material-UI (MUI)** as its primary UI framework. All components are styled using MUI's comprehensive component library and theming system, replacing traditional CSS files with a modern, component-based styling approach.
 
 ## Structure
 
+### Theme Configuration
+
+The application uses a centralized theme defined in `src/App.tsx`:
+
+```tsx
+const theme = createTheme({
+    palette: {
+        mode: 'light',
+        primary: {
+            main: '#6366f1', // Indigo
+        },
+        secondary: {
+            main: '#ec4899', // Pink
+        },
+        background: {
+            default: '#f8fafc',
+            paper: '#ffffff',
+        },
+    },
+    typography: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    },
+    shape: {
+        borderRadius: 12,
+    },
+});
 ```
-styles/
-├── global.css       # Global styles, CSS variables, and reusable utilities
-├── HomePage.css     # HomePage component specific overrides
-└── Game2048.css     # Game2048 component specific overrides
-```
+
+### Component Architecture
+
+All components use MUI components:
+
+- **HomePage**: `AppBar`, `Toolbar`, `TextField`, `Chip`, `Card`, `CardContent`, `CardActionArea`
+- **Calculator**: `Paper`, `Button`, `IconButton`, `Typography`
+- **Game2048**: `Paper`, `Dialog`, `DialogTitle`, `DialogContent`, `DialogActions`
 
 ## Design System
 
-### CSS Variables (defined in `global.css`)
+### Material-UI Theme System
 
-All colors, spacing, typography, and other design tokens are defined as CSS variables in `global.css`. This ensures consistency across the entire application.
+All design tokens are managed through the MUI theme:
 
-#### Key Variables:
+#### Key Theme Properties:
 
-- **Colors**: `--color-primary`, `--color-background`, `--color-text-primary`, etc.
-- **Spacing**: `--spacing-xs` to `--spacing-2xl`
-- **Border Radius**: `--radius-sm` to `--radius-full`
-- **Shadows**: `--shadow-sm` to `--shadow-lg`
-- **Typography**: `--font-size-xs` to `--font-size-4xl`
-- **Transitions**: `--transition-fast`, `--transition-base`, `--transition-slow`
+- **Colors**: Defined in `palette` (primary, secondary, error, warning, info, success)
+- **Spacing**: MUI's 8px-based spacing system using `theme.spacing()`
+- **Typography**: Responsive typography variants (h1-h6, body1, body2, button, etc.)
+- **Shape**: Global border radius configuration
+- **Breakpoints**: Built-in responsive breakpoints (xs, sm, md, lg, xl)
+- **Shadows**: Elevation system (0-24)
 
-### Global Styles
+### Styling Approaches
 
-The `global.css` file includes:
+#### 1. MUI's `sx` Prop (Recommended)
 
-- CSS variable definitions (design tokens)
-- Reset and base styles
-- Typography defaults
-- Button, input, and form element defaults
-- Reusable utility classes (`.card`, `.container`, `.flex`, `.grid`, etc.)
+```tsx
+<Box
+    sx={{
+        bgcolor: 'background.paper',
+        p: 3,
+        borderRadius: 2,
+        boxShadow: 3,
+    }}
+>
+    Content
+</Box>
+```
 
-### Component Styles
+#### 2. Theme Access
 
-Component-specific CSS files (e.g., `HomePage.css`, `Game2048.css`) should:
+```tsx
+// Colors from theme
+sx={{ color: 'primary.main', bgcolor: 'background.default' }}
 
-- **Only override** what's necessary for that component
-- **Use CSS variables** instead of hardcoded values
-- **Keep specificity low** to maintain maintainability
-- **Avoid duplicating** styles already defined in global.css
+// Spacing from theme
+sx={{ p: 2, m: 3 }} // padding: 16px, margin: 24px
+
+// Responsive styles
+sx={{
+    fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' },
+    p: { xs: 2, md: 4 }
+}}
+```
+
+## Benefits of Material-UI
+
+✅ **Consistent Design** - Follows Material Design guidelines
+✅ **Responsive by Default** - Built-in breakpoint system
+✅ **Accessible** - ARIA attributes and keyboard navigation included
+✅ **Customizable** - Extensive theming capabilities
+✅ **Production Ready** - Battle-tested components
+✅ **Type Safe** - Full TypeScript support
+✅ **Icon Library** - Comprehensive `@mui/icons-material` package
+✅ **No CSS Files** - Component-based styling eliminates CSS conflicts
 
 ## Usage
 
-### In Components
+### Importing Components
 
 ```tsx
-// Import global styles once in main.tsx
-import './styles/global.css';
-
-// Import component-specific styles
-import '../styles/HomePage.css';
+import { Box, Button, Typography, Paper } from '@mui/material';
+import { Home as HomeIcon } from '@mui/icons-material';
 ```
 
-### Using CSS Variables
+### Using Theme Provider
 
-```css
-/* Good - uses CSS variables */
-.my-element {
-    color: var(--color-primary);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
-}
+```tsx
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
-/* Avoid - hardcoded values */
-.my-element {
-    color: #1877f2;
-    padding: 1rem;
-    border-radius: 8px;
+function App() {
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            {/* Your components */}
+        </ThemeProvider>
+    );
 }
 ```
 
-### Adding New Styles
+### Responsive Design
 
-1. **Check global.css first** - See if there's already a utility class or variable
-2. **Use CSS variables** - Always prefer variables over hardcoded values
-3. **Component-specific only** - Only add component-specific overrides to component CSS
-4. **New variables?** - Add new design tokens to `global.css` if needed
+```tsx
+// Responsive grid using Box
+<Box
+    sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+            xs: '1fr', // Mobile: 1 column
+            sm: 'repeat(2, 1fr)', // Tablet: 2 columns
+            md: 'repeat(3, 1fr)', // Desktop: 3 columns
+        },
+        gap: 3,
+    }}
+>
+    {/* Grid items */}
+</Box>
+```
 
-## Benefits
+### Common Patterns
 
-✅ **Centralized** - All styles in one location
-✅ **Consistent** - CSS variables ensure design consistency
-✅ **Maintainable** - Easy to update colors, spacing, etc. globally
-✅ **DRY** - No duplicated styles across components
-✅ **Scalable** - Easy to add new components with minimal CSS
-✅ **Themeable** - Can easily support dark mode or other themes by updating variables
+#### Card Component
+
+```tsx
+<Card elevation={2}>
+    <CardContent>
+        <Typography variant="h6">Title</Typography>
+        <Typography variant="body2" color="text.secondary">
+            Description
+        </Typography>
+    </CardContent>
+</Card>
+```
+
+#### Button Variants
+
+```tsx
+<Button variant="contained">Primary Action</Button>
+<Button variant="outlined">Secondary Action</Button>
+<Button variant="text">Tertiary Action</Button>
+```
+
+## Customization
+
+### Extending the Theme
+
+To add custom theme values, update `App.tsx`:
+
+```tsx
+const theme = createTheme({
+    palette: {
+        primary: {
+            main: '#your-color',
+        },
+    },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    textTransform: 'none', // Disable uppercase
+                },
+            },
+        },
+    },
+});
+```
+
+## Migration Notes
+
+This project was migrated from custom CSS to Material-UI. The following CSS files were removed:
+
+- ~~`global.css`~~ - Replaced by MUI's `CssBaseline`
+- ~~`HomePage.css`~~ - Replaced by MUI components
+- ~~`Calculator.css`~~ - Replaced by MUI components
+- ~~`Game2048.css`~~ - Replaced by MUI components
+
+All styling is now handled through MUI's component library and theme system.

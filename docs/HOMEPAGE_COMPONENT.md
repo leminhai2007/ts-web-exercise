@@ -218,10 +218,11 @@ Render project cards
 
 ## Dependencies
 
-- **React**: `useState`, `useMemo` hooks
+- **React**: `useState`, `useMemo`, `useEffect` hooks
 - **React Router**: `Link` component for navigation
+- **Material-UI**: UI components (`AppBar`, `Toolbar`, `TextField`, `Chip`, `Card`, etc.)
+- **MUI Icons**: Icon components (`Home`, `CloudQueue`, `CloudOff`, `GetApp`)
 - **Data**: `projects` array from `src/data/projects`
-- **Styles**: `../styles/HomePage.css`
 
 ## Adding New Projects
 

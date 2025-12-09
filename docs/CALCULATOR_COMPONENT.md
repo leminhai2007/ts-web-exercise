@@ -181,10 +181,12 @@ Matches the project's Facebook-inspired theme:
 - **Text**: `#050505` (primary text)
 - **Borders**: `#dddfe2` (subtle borders)
 
-## Styling Files
+## Styling
 
 - **Component**: `src/components/Calculator.tsx`
-- **Styles**: `src/styles/Calculator.css`
+- **UI Framework**: Material-UI components with `sx` prop styling
+- **Theme**: Inherits from global MUI theme in `App.tsx`
+- **Components Used**: `Paper`, `Button`, `IconButton`, `Typography`, `AppBar`, `Toolbar`
 
 ## Navigation
 

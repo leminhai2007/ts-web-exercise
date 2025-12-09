@@ -342,21 +342,27 @@ const resetGame = () => {
 
 **Purpose**: Resets the game to initial state.
 
-### `getTileClass()`
+### `getTileColor()` and `getTileTextColor()`
 
 ```tsx
-const getTileClass = (value: number): string => {
-    return value > 0 ? `tile tile-${value}` : 'tile tile-empty';
+const getTileColor = (value: number): string => {
+    const colors: { [key: number]: string } = {
+        2: '#eee4da',
+        4: '#ede0c8',
+        8: '#f2b179',
+        // ... more colors
+    };
+    return colors[value] || '#cdc1b4';
+};
+
+const getTileTextColor = (value: number): string => {
+    return value <= 4 ? '#776e65' : '#f9f6f2';
 };
 ```
 
-**Purpose**: Returns appropriate CSS class for each tile value.
+**Purpose**: Returns appropriate colors for each tile value dynamically using Material-UI's `sx` prop.
 
-**Example**:
-
-- `0` → `"tile tile-empty"`
-- `2` → `"tile tile-2"`
-- `2048` → `"tile tile-2048"`
+**Implementation**: Uses inline styles with MUI `Paper` components instead of CSS classes.
 
 ## UI Structure
 
@@ -442,25 +448,29 @@ Options:
 
 **Structure**:
 
+- Material-UI `Paper` components for each tile
 - Nested map: Outer for rows, inner for cells
 - Each tile shows its value (or empty if 0)
-- Dynamic CSS classes based on tile value
+- Dynamic inline styles using `sx` prop based on tile value
+- `aspectRatio: '1'` ensures square tiles
 
 ### 5. Instructions
 
 ```tsx
-<div className="game-instructions">
-    <p>Use arrow keys to move tiles...</p>
-    <div className="controls-hint">
-        <span>↑ Up</span>
-        <span>↓ Down</span>
-        <span>← Left</span>
-        <span>→ Right</span>
-    </div>
-</div>
+<Paper elevation={1} sx={{ mt: 3, p: 2, borderRadius: 2 }}>
+    <Typography variant="body2" color="text.secondary">
+        Use arrow keys or swipe to move tiles...
+    </Typography>
+    <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Chip icon={<ArrowUpward />} label="Up" />
+        <Chip icon={<ArrowDownward />} label="Down" />
+        <Chip icon={<ArrowBack />} label="Left" />
+        <Chip icon={<ArrowForward />} label="Right" />
+    </Stack>
+</Paper>
 ```
 
-Shows game instructions and keyboard controls.
+Shows game instructions and keyboard controls using MUI components.
 
 ## Game Flow
 
