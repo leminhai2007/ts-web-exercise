@@ -176,11 +176,15 @@ export const Game2048 = () => {
 
     return (
         <div className="game-2048">
+            <div className="page-title">
+                <img src="/2048.svg" alt="2048 Game" className="page-icon" />
+                <h1>2048 Game</h1>
+            </div>
+
             <div className="game-header">
                 <Link to="/" className="back-button">
                     ← Back to Home
                 </Link>
-                <h1>2048</h1>
                 <div className="score-container">
                     <div className="score">Score: {score}</div>
                     <button onClick={resetGame} className="reset-button">

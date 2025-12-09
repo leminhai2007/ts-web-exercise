@@ -14,6 +14,16 @@
 .home-header h1 {
     font-size: var(--font-size-4xl);
     margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+}
+
+.header-icon {
+    width: 64px;
+    height: 64px;
+    display: inline-block;
 }
 
 .home-header p {

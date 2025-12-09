@@ -8,5 +8,12 @@ export const projects: Project[] = [
         categories: ['game', 'puzzle'],
         path: '/2048',
     },
+    {
+        id: 'calculator',
+        name: 'Scientific Calculator',
+        description: 'Advanced calculator with basic and scientific modes for complex calculations',
+        categories: ['tool', 'math'],
+        path: '/calculator',
+    },
     // Add more projects here as you build them
 ];

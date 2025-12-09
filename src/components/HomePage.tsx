@@ -28,7 +28,10 @@ export const HomePage = () => {
     return (
         <div className="home-page">
             <header className="home-header">
-                <h1>🎮 My Tools & Games</h1>
+                <h1>
+                    <img src="/icon.svg" alt="Game Console" className="header-icon" />
+                    My Tools & Games
+                </h1>
                 <p>A collection of interactive projects and games</p>
             </header>
 
