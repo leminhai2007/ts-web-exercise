@@ -1,0 +1,237 @@
+/* Game2048 specific styles - using global variables */
+
+.game-2048 {
+    max-width: 600px;
+    margin: var(--spacing-xl) auto;
+    padding: var(--spacing-xl);
+    text-align: center;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.game-header h1 {
+    font-size: var(--font-size-4xl);
+    margin: 0;
+}
+
+.back-button {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    transition: background var(--transition-base);
+}
+
+.back-button:hover {
+    background: var(--color-primary-hover);
+}
+
+.score-container {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.score {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    font-size: var(--font-size-lg);
+}
+
+/* reset-button uses global button styles */
+
+.game-board {
+    background: var(--color-gray-100);
+    border-radius: var(--radius-lg);
+    padding: 10px;
+    display: inline-block;
+    box-shadow: var(--shadow-md);
+}
+
+.board-row {
+    display: flex;
+}
+
+.tile {
+    width: 100px;
+    height: 100px;
+    margin: 5px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-3xl);
+    font-weight: bold;
+    transition: all var(--transition-fast);
+}
+
+/* Tile color variations using CSS variables */
+.tile-empty {
+    background: var(--color-gray-50);
+}
+
+.tile-2 {
+    background: var(--color-blue-50);
+    color: var(--color-primary);
+}
+
+.tile-4 {
+    background: var(--color-blue-100);
+    color: var(--color-primary);
+}
+
+.tile-8 {
+    background: var(--color-blue-200);
+    color: var(--color-text-primary);
+}
+
+.tile-16 {
+    background: var(--color-blue-300);
+    color: var(--color-text-primary);
+}
+
+.tile-32 {
+    background: var(--color-blue-400);
+    color: white;
+}
+
+.tile-64 {
+    background: var(--color-blue-500);
+    color: white;
+}
+
+.tile-128 {
+    background: var(--color-blue-600);
+    color: white;
+    font-size: 1.75rem;
+}
+
+.tile-256 {
+    background: var(--color-blue-700);
+    color: white;
+    font-size: 1.75rem;
+}
+
+.tile-512 {
+    background: var(--color-blue-800);
+    color: white;
+    font-size: 1.75rem;
+}
+
+.tile-1024 {
+    background: var(--color-blue-900);
+    color: white;
+    font-size: 1.5rem;
+}
+
+.tile-2048 {
+    background: var(--color-primary-dark);
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 0 20px rgba(24, 119, 242, 0.5);
+}
+
+.message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.message-box {
+    background: var(--color-surface);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    max-width: 400px;
+}
+
+.message-box h2 {
+    margin-top: 0;
+    color: var(--color-primary);
+    font-size: var(--font-size-3xl);
+}
+
+.message-box p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xl);
+    margin: var(--spacing-md) 0;
+}
+
+.message-box button {
+    margin: var(--spacing-sm);
+    /* Uses global button styles */
+}
+
+.game-instructions {
+    margin-top: var(--spacing-xl);
+    color: var(--color-text-secondary);
+}
+
+.game-instructions p {
+    margin-bottom: var(--spacing-md);
+}
+
+.controls-hint {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.controls-hint span {
+    background: var(--color-gray-100);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+    .tile {
+        width: 70px;
+        height: 70px;
+        font-size: 1.5rem;
+    }
+
+    .tile-128,
+    .tile-256,
+    .tile-512 {
+        font-size: 1.25rem;
+    }
+
+    .tile-1024,
+    .tile-2048 {
+        font-size: 1rem;
+    }
+
+    .game-header {
+        flex-direction: column;
+    }
+
+    .game-header h1 {
+        font-size: var(--font-size-3xl);
+    }
+}
