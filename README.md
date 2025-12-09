@@ -155,8 +155,12 @@ Example:
 
 ## Additional Documentation
 
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - How to publish your site to the internet
+- **[Security Guide](docs/SECURITY.md)** - Code obfuscation, environment variables, and production security
 - **[Code Quality Guide](docs/CODE_QUALITY.md)** - Code quality tools and workflows
 - **[Styles Guide](docs/STYLES.md)** - CSS architecture and design system
+- **[HomePage Component](docs/HOMEPAGE_COMPONENT.md)** - HomePage component architecture and logic
+- **[Game2048 Component](docs/GAME2048_COMPONENT.md)** - Game2048 implementation details
 
 ## License
 

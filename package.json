@@ -11,7 +11,7 @@
         "fix:all:format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
         "fix:all:convention": "eslint . --fix",
         "check:staged": "lint-staged",
-        "fix:staged:convention": "lint-staged --config .lintstagedrc.fix.json",
+        "fix:staged": "lint-staged --config .lintstagedrc.fix.json",
         "clean": "rimraf dist node_modules/.vite",
         "preview": "vite preview",
         "serve": "serve dist"
