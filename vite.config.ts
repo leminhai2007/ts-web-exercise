@@ -50,6 +50,17 @@ export default defineConfig({
             },
         }),
     ],
+    server: {
+        proxy: {
+            '/api/sudoku': {
+                target: 'https://www.youdosudoku.com',
+                changeOrigin: true,
+                rewrite: () => '/api/',
+                secure: false,
+                followRedirects: true,
+            },
+        },
+    },
     build: {
         // Minification using esbuild (fast and built-in)
         minify: 'esbuild',

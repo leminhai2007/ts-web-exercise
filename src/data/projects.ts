@@ -15,5 +15,12 @@ export const projects: Project[] = [
         categories: ['tool', 'math'],
         path: '/calculator',
     },
+    {
+        id: 'sudoku',
+        name: 'Sudoku Game',
+        description: 'Classic Sudoku puzzle game with multiple difficulty levels, note-taking, and validation',
+        categories: ['game', 'puzzle'],
+        path: '/sudoku',
+    },
     // Add more projects here as you build them
 ];
