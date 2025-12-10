@@ -2,15 +2,25 @@
 
 ## Overview
 
-The `Game2048` component implements the classic 2048 sliding puzzle game. Players combine numbered tiles to reach the 2048 tile. The game features keyboard controls, score tracking, win/lose detection, and the ability to restart.
+The `Game2048` component implements the classic 2048 sliding puzzle game with persistent game state. Players combine numbered tiles to reach the 2048 tile. The game features keyboard controls, touch gestures, score tracking, win/lose detection, auto-save functionality, and Material-UI components for a modern interface.
 
 ## File Location
 
 `src/components/Game2048.tsx`
 
+## Key Features
+
+- ✅ **Auto-save**: Game progress automatically saved to localStorage
+- ✅ **Auto-restore**: Game state restored on page refresh/revisit
+- ✅ **Responsive Design**: Optimized for mobile and desktop
+- ✅ **Touch Support**: Swipe gestures for mobile devices
+- ✅ **Keyboard Controls**: Arrow keys for desktop
+- ✅ **Material-UI**: Modern, accessible UI components
+- ✅ **Theme Integration**: Matches website color scheme
+
 ## Game Rules
 
-1. Use arrow keys to slide all tiles in one direction
+1. Use arrow keys (desktop) or swipe (mobile) to slide all tiles in one direction
 2. When two tiles with the same number touch, they merge into one tile with double the value
 3. After each move, a new tile (2 or 4) appears in a random empty spot
 4. Goal: Create a tile with the value 2048
@@ -20,17 +30,27 @@ The `Game2048` component implements the classic 2048 sliding puzzle game. Player
 
 ```tsx
 type Board = number[][];
+
+interface GameState {
+    board: Board;
+    score: number;
+    gameOver: boolean;
+    won: boolean;
+}
 ```
 
-A 2D array representing the game board, where each number represents a tile's value (0 = empty).
+- **Board**: A 2D array representing the game board (0 = empty cell)
+- **GameState**: Complete game state for localStorage persistence
 
 ## Constants
 
 ```tsx
 const GRID_SIZE = 4;
+const STORAGE_KEY = 'game2048_state';
 ```
 
-Defines a 4x4 game board (16 tiles total).
+- **GRID_SIZE**: Defines a 4x4 game board (16 tiles total)
+- **STORAGE_KEY**: localStorage key for saving/loading game state
 
 ## Core Game Logic Functions
 
@@ -238,21 +258,111 @@ const isGameOver = (board: Board): boolean => {
 
 Returns `true` only if board is full AND no adjacent tiles match.
 
+## LocalStorage Functions
+
+### `loadGameState()`
+
+```tsx
+const loadGameState = (): GameState | null => {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (error) {
+        console.error('Failed to load game state:', error);
+    }
+    return null;
+};
+```
+
+**Purpose**: Loads saved game state from localStorage.
+
+**Returns**: Saved `GameState` object or `null` if no save exists.
+
+**Error Handling**: Returns `null` if localStorage is unavailable or data is corrupted.
+
+### `saveGameState()`
+
+```tsx
+const saveGameState = (state: GameState): void => {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error('Failed to save game state:', error);
+    }
+};
+```
+
+**Purpose**: Saves current game state to localStorage.
+
+**When Called**: Automatically triggered via `useEffect` whenever game state changes.
+
+### `clearGameState()`
+
+```tsx
+const clearGameState = (): void => {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+        console.error('Failed to clear game state:', error);
+    }
+};
+```
+
+**Purpose**: Removes saved game state from localStorage.
+
+**When Called**: When user clicks "New Game" button.
+
 ## Component State
 
 ```tsx
-const [board, setBoard] = useState<Board>(initializeBoard());
-const [score, setScore] = useState(0);
-const [gameOver, setGameOver] = useState(false);
-const [won, setWon] = useState(false);
+const initializeGameState = (): GameState => {
+    const savedState = loadGameState();
+    if (savedState) {
+        return savedState;
+    }
+    return {
+        board: initializeBoard(),
+        score: 0,
+        gameOver: false,
+        won: false,
+    };
+};
+
+const initialState = initializeGameState();
+const [board, setBoard] = useState<Board>(initialState.board);
+const [score, setScore] = useState(initialState.score);
+const [gameOver, setGameOver] = useState(initialState.gameOver);
+const [won, setWon] = useState(initialState.won);
+const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
 ```
 
-| State      | Type      | Purpose                             |
-| ---------- | --------- | ----------------------------------- |
-| `board`    | `Board`   | Current game board state            |
-| `score`    | `number`  | Current score (sum of merged tiles) |
-| `gameOver` | `boolean` | Whether game is over                |
-| `won`      | `boolean` | Whether player reached 2048         |
+| State        | Type                               | Purpose                             |
+| ------------ | ---------------------------------- | ----------------------------------- |
+| `board`      | `Board`                            | Current game board state            |
+| `score`      | `number`                           | Current score (sum of merged tiles) |
+| `gameOver`   | `boolean`                          | Whether game is over                |
+| `won`        | `boolean`                          | Whether player reached 2048         |
+| `touchStart` | `{ x: number; y: number } \| null` | Touch gesture start position        |
+
+**State Initialization**:
+
+1. Attempts to load saved game from localStorage
+2. If found, restores previous game state
+3. If not found, creates new game
+
+**State Persistence**:
+
+```tsx
+useEffect(() => {
+    const gameState: GameState = { board, score, gameOver, won };
+    saveGameState(gameState);
+}, [board, score, gameOver, won]);
+```
+
+- Automatically saves to localStorage whenever any state changes
+- Ensures no progress is lost on refresh/close
 
 ## Component Functions
 
@@ -340,124 +450,189 @@ const resetGame = () => {
 };
 ```
 
-**Purpose**: Resets the game to initial state.
+**Purpose**: Resets the game to initial state and clears saved progress.
+
+**Actions**:
+
+1. Clears localStorage (removes saved game)
+2. Creates new board with two random tiles
+3. Resets score to 0
+4. Resets game over and won states
 
 ### `getTileColor()` and `getTileTextColor()`
 
 ```tsx
 const getTileColor = (value: number): string => {
+    // Using theme-based color scheme with indigo/blue palette
     const colors: { [key: number]: string } = {
-        2: '#eee4da',
-        4: '#ede0c8',
-        8: '#f2b179',
-        // ... more colors
+        2: '#e0e7ff', // indigo-100
+        4: '#c7d2fe', // indigo-200
+        8: '#a5b4fc', // indigo-300
+        16: '#818cf8', // indigo-400
+        32: '#6366f1', // indigo-500 (primary)
+        64: '#4f46e5', // indigo-600
+        128: '#4338ca', // indigo-700
+        256: '#3730a3', // indigo-800
+        512: '#312e81', // indigo-900
+        1024: '#1e1b4b', // indigo-950
+        2048: '#ec4899', // pink (secondary color)
     };
-    return colors[value] || '#cdc1b4';
+    return colors[value] || '#e5e7eb';
 };
 
 const getTileTextColor = (value: number): string => {
-    return value <= 4 ? '#776e65' : '#f9f6f2';
+    return value <= 4 ? '#1e293b' : '#ffffff';
 };
 ```
 
-**Purpose**: Returns appropriate colors for each tile value dynamically using Material-UI's `sx` prop.
+**Purpose**: Returns appropriate colors for each tile value using the website's theme colors.
 
-**Implementation**: Uses inline styles with MUI `Paper` components instead of CSS classes.
+**Color Scheme**:
+
+- Low values (2, 4): Light indigo with dark text
+- Mid values (8-512): Progressive indigo gradient
+- High values (1024): Very dark indigo
+- **2048**: Special pink color (secondary theme color)
+
+**Implementation**: Uses inline styles with MUI `Paper` components via `sx` prop.
 
 ## UI Structure
 
-### 1. Game Header
+### 1. AppBar (Header)
 
 ```tsx
-<div className="game-header">
-    <Link to="/" className="back-button">
-        ← Back to Home
-    </Link>
-    <h1>2048</h1>
-    <div className="score-container">
-        <div className="score">Score: {score}</div>
-        <button onClick={resetGame}>New Game</button>
-    </div>
-</div>
+<AppBar position="static" elevation={0}>
+    <Toolbar>
+        <IconButton component={Link} to="/" edge="start">
+            <ArrowBackIcon />
+        </IconButton>
+        <GameIcon sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+            2048 Game
+        </Typography>
+        <Chip label={`Score: ${score}`} color="primary" />
+        {/* Desktop: Full button, Mobile: Icon only */}
+        <Button variant="contained" startIcon={<RefreshIcon />}>
+            New Game
+        </Button>
+        <IconButton>
+            {' '}
+            {/* Mobile only */}
+            <RefreshIcon fontSize="small" />
+        </IconButton>
+    </Toolbar>
+</AppBar>
 ```
 
-Contains:
+**Features**:
 
-- Back navigation button
-- Game title
-- Current score display
-- New Game button
+- Back button to navigate home
+- Game title with responsive font size
+- Score display using MUI Chip
+- New Game button (full on desktop, icon on mobile)
+- Game icon hidden on mobile to save space
 
-### 2. Win Overlay
-
-```tsx
-{
-    won && !gameOver && (
-        <div className="message-overlay win">
-            <div className="message-box">
-                <h2>You Win! 🎉</h2>
-                <p>You reached 2048!</p>
-                <button onClick={() => setWon(false)}>Continue Playing</button>
-                <button onClick={resetGame}>New Game</button>
-            </div>
-        </div>
-    );
-}
-```
-
-**Conditional**: Only shows when `won=true` and `gameOver=false`.
-
-Options:
-
-- Continue playing (keep going for higher scores)
-- Start new game
-
-### 3. Game Over Overlay
+### 2. Game Board
 
 ```tsx
-{
-    gameOver && (
-        <div className="message-overlay game-over">
-            <div className="message-box">
-                <h2>Game Over!</h2>
-                <p>Final Score: {score}</p>
-                <button onClick={resetGame}>Try Again</button>
-            </div>
-        </div>
-    );
-}
-```
-
-**Conditional**: Only shows when `gameOver=true`.
-
-### 4. Game Board
-
-```tsx
-<div className="game-board">
-    {board.map((row, i) => (
-        <div key={i} className="board-row">
-            {row.map((cell, j) => (
-                <div key={`${i}-${j}`} className={getTileClass(cell)}>
-                    {cell > 0 && cell}
-                </div>
-            ))}
-        </div>
-    ))}
-</div>
+<Container maxWidth="sm" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 0.5, sm: 3 } }}>
+    <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, bgcolor: 'grey.100' }}>
+        <Box
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: { xs: 0.5, sm: 2 },
+                bgcolor: 'grey.200',
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+        >
+            {board.map((row, i) =>
+                row.map((cell, j) => (
+                    <Paper
+                        key={`${i}-${j}`}
+                        sx={{
+                            aspectRatio: '1',
+                            bgcolor: cell > 0 ? getTileColor(cell) : 'grey.300',
+                            color: getTileTextColor(cell),
+                            fontSize: {
+                                xs: cell >= 1000 ? '1rem' : '1.5rem',
+                                sm: cell >= 1000 ? '2rem' : '3rem',
+                            },
+                        }}
+                    >
+                        {cell > 0 && cell}
+                    </Paper>
+                ))
+            )}
+        </Box>
+    </Paper>
+</Container>
 ```
 
 **Structure**:
 
 - Material-UI `Paper` components for each tile
-- Nested map: Outer for rows, inner for cells
+- CSS Grid layout (4x4)
 - Each tile shows its value (or empty if 0)
 - Dynamic inline styles using `sx` prop based on tile value
 - `aspectRatio: '1'` ensures square tiles
+- Touch event handlers for mobile swipe gestures
+
+**Responsive Features**:
+
+- Smaller gaps and padding on mobile (xs)
+- Responsive font sizes that scale with tile value
+- Container padding adjusts for small screens
+
+### 3. Win Dialog
+
+```tsx
+<Dialog open={won && !gameOver} onClose={() => setWon(false)} maxWidth="xs" fullWidth>
+    <DialogTitle>You Win! 🎉</DialogTitle>
+    <DialogContent>
+        <Typography>You reached 2048!</Typography>
+    </DialogContent>
+    <DialogActions>
+        <Button onClick={() => setWon(false)} variant="outlined">
+            Continue Playing
+        </Button>
+        <Button onClick={resetGame} variant="contained">
+            New Game
+        </Button>
+    </DialogActions>
+</Dialog>
+```
+
+**Conditional**: Only shows when `won=true` and `gameOver=false`.
+
+**Options**:
+
+- **Continue Playing**: Dismiss dialog and keep playing for higher scores
+- **New Game**: Reset game and clear saved progress
+
+### 4. Game Over Dialog
+
+```tsx
+<Dialog open={gameOver} maxWidth="xs" fullWidth>
+    <DialogTitle>Game Over!</DialogTitle>
+    <DialogContent>
+        <Typography>Final Score: {score}</Typography>
+    </DialogContent>
+    <DialogActions>
+        <Button onClick={resetGame} variant="contained" fullWidth>
+            Try Again
+        </Button>
+    </DialogActions>
+</Dialog>
+```
+
+**Conditional**: Only shows when `gameOver=true`.
 
 ### 5. Instructions
 
 ```tsx
-<Paper elevation={1} sx={{ mt: 3, p: 2, borderRadius: 2 }}>
+<Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 } }}>
     <Typography variant="body2" color="text.secondary">
         Use arrow keys or swipe to move tiles...
     </Typography>
@@ -475,14 +650,15 @@ Shows game instructions and keyboard controls using MUI components.
 ## Game Flow
 
 ```
-1. Initialize board (2 random tiles)
-2. User presses arrow key
+1. Initialize board (2 random tiles) or load from localStorage
+2. User presses arrow key or swipes
 3. handleMove() called
 4. move() calculates new board state
 5. If valid move:
    - Add random tile
    - Update board
    - Update score
+   - Save state to localStorage
    - Check win condition
    - Check game over condition
 6. Re-render UI
@@ -494,7 +670,31 @@ Shows game instructions and keyboard controls using MUI components.
 1. **useCallback**: Prevents `handleMove` recreation on every render
 2. **Board copying**: Always creates new board instead of mutating (immutability)
 3. **Event cleanup**: Removes keyboard listener on unmount
-4. **Conditional rendering**: Overlays only render when needed
+4. **Conditional rendering**: Dialogs only render when needed
+5. **localStorage throttling**: Saves only on state changes via useEffect
+6. **Error handling**: Catches localStorage failures gracefully
+
+## LocalStorage Persistence
+
+**Storage Key**: `'game2048_state'`
+
+**Saved Data**:
+
+```json
+{
+    "board": [[2, 0, 0, 0], [0, 0, 4, 0], ...],
+    "score": 128,
+    "gameOver": false,
+    "won": false
+}
+```
+
+**Behavior**:
+
+- **On Mount**: Loads saved game if available
+- **On Update**: Auto-saves after every move
+- **On New Game**: Clears saved data
+- **On Error**: Falls back to new game if load fails
 
 ## Algorithm Complexity
 
@@ -505,8 +705,32 @@ Shows game instructions and keyboard controls using MUI components.
 | `moveLeft()`        | O(n²)           | O(n²)                      |
 | `rotateBoard()`     | O(n²)           | O(n²)                      |
 | `isGameOver()`      | O(n²)           | O(1)                       |
+| `loadGameState()`   | O(1)            | O(n²)                      |
+| `saveGameState()`   | O(1)            | O(n²)                      |
 
 Where n = GRID_SIZE (4 in this case)
+
+## Mobile Optimizations
+
+**Responsive Breakpoints**:
+
+- **xs (< 600px)**: Ultra-compact layout
+    - Minimal padding (0.5)
+    - Smaller gaps (0.5)
+    - Reduced font sizes (1rem - 1.5rem)
+    - Icon-only refresh button
+    - Hidden game icon
+- **sm+ (≥ 600px)**: Full layout
+    - Standard padding (2-3)
+    - Normal gaps (2)
+    - Full font sizes (2rem - 3rem)
+    - Full "New Game" button
+
+**Touch Gestures**:
+
+- Swipe detection with minimum distance threshold (30px)
+- Horizontal vs vertical detection
+- Touch start/end event handling
 
 ## Future Enhancements
 

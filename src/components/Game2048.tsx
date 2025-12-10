@@ -6,6 +6,14 @@ import { ArrowBack as ArrowBackIcon, SportsEsports as GameIcon, Refresh as Refre
 type Board = number[][];
 
 const GRID_SIZE = 4;
+const STORAGE_KEY = 'game2048_state';
+
+interface GameState {
+    board: Board;
+    score: number;
+    gameOver: boolean;
+    won: boolean;
+}
 
 const initializeBoard = (): Board => {
     const board = Array(GRID_SIZE)
@@ -14,6 +22,34 @@ const initializeBoard = (): Board => {
     addRandomTile(board);
     addRandomTile(board);
     return board;
+};
+
+const loadGameState = (): GameState | null => {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (error) {
+        console.error('Failed to load game state:', error);
+    }
+    return null;
+};
+
+const saveGameState = (state: GameState): void => {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error('Failed to save game state:', error);
+    }
+};
+
+const clearGameState = (): void => {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+        console.error('Failed to clear game state:', error);
+    }
 };
 
 const addRandomTile = (board: Board): void => {
@@ -118,11 +154,37 @@ const isGameOver = (board: Board): boolean => {
 };
 
 export const Game2048 = () => {
-    const [board, setBoard] = useState<Board>(initializeBoard());
-    const [score, setScore] = useState(0);
-    const [gameOver, setGameOver] = useState(false);
-    const [won, setWon] = useState(false);
+    // Initialize state from localStorage or create new game
+    const initializeGameState = (): GameState => {
+        const savedState = loadGameState();
+        if (savedState) {
+            return savedState;
+        }
+        return {
+            board: initializeBoard(),
+            score: 0,
+            gameOver: false,
+            won: false,
+        };
+    };
+
+    const initialState = initializeGameState();
+    const [board, setBoard] = useState<Board>(initialState.board);
+    const [score, setScore] = useState(initialState.score);
+    const [gameOver, setGameOver] = useState(initialState.gameOver);
+    const [won, setWon] = useState(initialState.won);
     const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+
+    // Save game state to localStorage whenever it changes
+    useEffect(() => {
+        const gameState: GameState = {
+            board,
+            score,
+            gameOver,
+            won,
+        };
+        saveGameState(gameState);
+    }, [board, score, gameOver, won]);
 
     const handleMove = useCallback(
         (direction: string) => {
@@ -192,6 +254,7 @@ export const Game2048 = () => {
     };
 
     const resetGame = () => {
+        clearGameState();
         setBoard(initializeBoard());
         setScore(0);
         setGameOver(false);
