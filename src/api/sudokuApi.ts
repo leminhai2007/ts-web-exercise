@@ -10,8 +10,8 @@ export const generateSudoku = async (difficulty: DifficultyLevel = 'easy'): Prom
     try {
         console.log('Fetching Sudoku puzzle with difficulty:', difficulty);
 
-        // Use proxy in development, direct URL in production
-        const apiUrl = import.meta.env.DEV ? '/api/sudoku/' : 'https://www.youdosudoku.com/api/';
+        // Use serverless function in both development and production
+        const apiUrl = '/api/youdosudoku';
 
         const response = await fetch(apiUrl, {
             method: 'POST',

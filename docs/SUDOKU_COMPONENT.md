@@ -489,27 +489,133 @@ Potential improvements:
 
 ## CORS and Proxy Configuration
 
-**Development:**
-The application uses Vite's proxy feature to bypass CORS restrictions during local development. The proxy forwards requests from `/api/sudoku/` to `https://www.youdosudoku.com/api/`.
+### Overview
 
-**Production:**
-In production builds, the app makes direct requests to `https://www.youdosudoku.com/api/`. Note that CORS must be properly configured on the deployment server or the API must allow requests from your production domain.
+The [You Do Sudoku API](https://www.youdosudoku.com/api/) does not support CORS (Cross-Origin Resource Sharing) for browser requests. To work around this limitation, the application uses different strategies for development and production environments.
+
+### Development Environment
+
+**Vercel Dev Server + Vite:**
+During local development, we run both Vercel's dev server (for serverless functions) and Vite (for the frontend) concurrently.
+
+**Start development:**
+
+```bash
+yarn dev
+```
+
+This runs:
+
+1. **Vercel Dev** on port 3000 - handles serverless functions
+2. **Vite** on port 5173 - serves the React app
 
 **Configuration in `vite.config.ts`:**
 
 ```typescript
 server: {
+  // Proxy API requests to Vercel dev server in development
   proxy: {
-    '/api/sudoku': {
-      target: 'https://www.youdosudoku.com',
+    '/api': {
+      target: 'http://localhost:3000',
       changeOrigin: true,
-      rewrite: () => '/api/',
-      secure: false,
-      followRedirects: true,
     },
   },
 }
 ```
+
+**How it works:**
+
+1. Frontend makes request to `/api/youdosudoku`
+2. Vite proxy forwards to Vercel dev server at `localhost:3000`
+3. Vercel dev server runs the serverless function in `api/youdosudoku.ts`
+4. Serverless function makes request to You Do Sudoku API
+5. Response is returned to frontend
+6. No CORS issues - consistent with production behavior
+
+### Production Environment
+
+**Serverless Function Proxy:**
+When deployed to Vercel (or similar platforms), a serverless function acts as a backend proxy.
+
+**File:** `api/youdosudoku.ts`
+
+```typescript
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    try {
+        const response = await fetch('https://www.youdosudoku.com/api/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req.body),
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Set CORS headers
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+        return res.status(200).json(data);
+    } catch (error) {
+        console.error('Sudoku API proxy error:', error);
+        return res.status(500).json({
+            error: 'Failed to fetch sudoku puzzle',
+        });
+    }
+}
+```
+
+**How it works:**
+
+1. Frontend makes request to `/api/sudoku`
+2. Vercel routes request to serverless function
+3. Function makes server-side request to You Do Sudoku API
+4. Function adds CORS headers to response
+5. Frontend receives data without CORS errors
+
+### API Client Configuration
+
+**File:** `src/api/sudokuApi.ts`
+
+```typescript
+// Use serverless function in both development and production
+const apiUrl = '/api/youdosudoku';
+```
+
+**Consistent Behavior:**
+
+- Both environments use the same endpoint `/api/youdosudoku`
+- Development: Proxied to Vercel dev server → serverless function
+- Production: Directly calls deployed serverless function
+- No environment-specific code needed
+- Easier to test production behavior locally
+
+### Deployment Requirements
+
+**For Vercel:**
+
+- The `api/` folder is automatically detected
+- Serverless functions are deployed automatically
+- No additional configuration needed
+- `@vercel/node` package must be installed
+
+**For Other Platforms:**
+You'll need to implement a similar backend proxy solution:
+
+- **Netlify:** Use Netlify Functions in `netlify/functions/`
+- **AWS:** Create Lambda function with API Gateway
+- **Custom Server:** Set up Express/Fastify proxy endpoint
+- **Alternative:** Use a different Sudoku API with CORS support
 
 ## Performance Notes
 

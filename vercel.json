@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/youdosudoku",
+            "destination": "/api/youdosudoku.ts"
+        }
+    ]
+}

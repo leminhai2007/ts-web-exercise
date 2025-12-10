@@ -51,13 +51,11 @@ export default defineConfig({
         }),
     ],
     server: {
+        // Proxy API requests to Vercel dev server in development
         proxy: {
-            '/api/sudoku': {
-                target: 'https://www.youdosudoku.com',
+            '/api': {
+                target: 'http://localhost:3000',
                 changeOrigin: true,
-                rewrite: () => '/api/',
-                secure: false,
-                followRedirects: true,
             },
         },
     },
