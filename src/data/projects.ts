@@ -9,18 +9,18 @@ export const projects: Project[] = [
         path: '/2048',
     },
     {
-        id: 'calculator',
-        name: 'Scientific Calculator',
-        description: 'Advanced calculator with basic and scientific modes for complex calculations',
-        categories: ['tool', 'math'],
-        path: '/calculator',
-    },
-    {
         id: 'sudoku',
         name: 'Sudoku Game',
         description: 'Classic Sudoku puzzle game with multiple difficulty levels, note-taking, and validation',
         categories: ['game', 'puzzle'],
         path: '/sudoku',
+    },
+    {
+        id: 'lucky-wheel',
+        name: 'Lucky Wheel',
+        description: 'Spin the wheel of fortune! Make decisions with a customizable lucky wheel. Save and share your wheels.',
+        categories: ['tool', 'random'],
+        path: '/lucky-wheel',
     },
     // Add more projects here as you build them
 ];

@@ -105,26 +105,7 @@ const theme = createTheme({
 - `Chip` components are touch-friendly by default
 - Adequate spacing for thumb navigation
 
-### 3. Calculator Component
-
-#### Responsive Calculator Layout
-
-- **Container**: `maxWidth="sm"` for optimal width on all screens
-- **Button Grid**: CSS Grid that maintains aspect ratios
-- **Display**: Responsive typography with monospace font
-
-#### Scientific Mode
-
-- 4-column grid for scientific functions
-- Responsive button sizing with `minHeight`
-- Compact layout on mobile devices
-
-```tsx
-<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
-    <Button sx={{ minHeight: { xs: 50, sm: 60 } }}>
-```
-
-### 4. Game2048 Component
+### 3. Game2048 Component
 
 #### Responsive Game Board
 

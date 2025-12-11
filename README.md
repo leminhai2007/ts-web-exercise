@@ -5,7 +5,11 @@ A web application built with React, TypeScript, and Vite that hosts multiple too
 ## Features
 
 - **Home Page**: Browse all available projects with search and category filtering
+- **2048 Game**: Classic sliding puzzle game
+- **Sudoku**: Sudoku puzzle game with multiple difficulty levels
+- **Lucky Wheel**: Interactive decision-making wheel with sharing capabilities
 - **Responsive Design**: Works on desktop and mobile devices
+- **Progressive Web App**: Install on your device for offline access
 - **Easy to Extend**: Add new projects by updating the projects data file
 
 ## Getting Started
@@ -161,6 +165,9 @@ Example:
 - **[Styles Guide](docs/STYLES.md)** - CSS architecture and design system
 - **[HomePage Component](docs/HOMEPAGE_COMPONENT.md)** - HomePage component architecture and logic
 - **[Game2048 Component](docs/GAME2048_COMPONENT.md)** - Game2048 implementation details
+- **[Sudoku Component](docs/SUDOKU_COMPONENT.md)** - Sudoku game logic and features
+- **[Lucky Wheel Component](docs/LUCKY_WHEEL_COMPONENT.md)** - Lucky Wheel detailed technical documentation
+- **[Lucky Wheel Known Issues](docs/LUCKY_WHEEL_KNOWN_ISSUES.md)** - React Compiler warnings explained
 
 ## License
 

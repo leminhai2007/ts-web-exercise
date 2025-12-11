@@ -39,8 +39,9 @@ const theme = createTheme({
 All components use MUI components:
 
 - **HomePage**: `AppBar`, `Toolbar`, `TextField`, `Chip`, `Card`, `CardContent`, `CardActionArea`
-- **Calculator**: `Paper`, `Button`, `IconButton`, `Typography`
-- **Game2048**: `Paper`, `Dialog`, `DialogTitle`, `DialogContent`, `DialogActions`
+- **Game2048**: `Paper`, `Dialog`, `DialogTitle`, `DialogContent`, `DialogActions`, `Button`, `IconButton`
+- **Sudoku**: `AppBar`, `Toolbar`, `Container`, `Paper`, `Button`, `Dialog`, `Snackbar`, `Alert`
+- **LuckyWheel**: `AppBar`, `Container`, `Paper`, `Button`, `IconButton`, `Dialog`, `TextField`, `Stack`, `List`, `Snackbar`, `Alert`
 
 ## Design System
 
@@ -192,13 +193,69 @@ const theme = createTheme({
 });
 ```
 
-## Migration Notes
+## Component-Specific Styling
 
-This project was migrated from custom CSS to Material-UI. The following CSS files were removed:
+### AppBar Pattern (Consistent Across All Components)
 
-- ~~`global.css`~~ - Replaced by MUI's `CssBaseline`
-- ~~`HomePage.css`~~ - Replaced by MUI components
-- ~~`Calculator.css`~~ - Replaced by MUI components
-- ~~`Game2048.css`~~ - Replaced by MUI components
+```tsx
+<AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
+    <Toolbar>
+        <IconButton component={Link} to="/" sx={{ mr: 2, color: 'text.primary' }}>
+            <ArrowBackIcon />
+        </IconButton>
+        <ComponentIcon sx={{ mr: 1, color: 'primary.main' }} />
+        <Typography variant="h6" sx={{ flexGrow: 1, color: 'text.primary' }}>
+            Component Name
+        </Typography>
+    </Toolbar>
+</AppBar>
+```
 
-All styling is now handled through MUI's component library and theme system.
+### Responsive Button Pattern
+
+```tsx
+// Desktop: Icon + Text, Mobile: Icon Only
+<Button
+  startIcon={<ActionIcon />}
+  onClick={handleAction}
+  sx={{ display: isMobile ? 'none' : 'flex' }}
+>
+  Action Text
+</Button>
+<IconButton
+  onClick={handleAction}
+  sx={{ display: isMobile ? 'flex' : 'none', color: 'text.primary' }}
+>
+  <ActionIcon />
+</IconButton>
+```
+
+### Dialog Pattern
+
+```tsx
+<Dialog open={showDialog} onClose={handleClose} maxWidth="sm" fullWidth>
+    <DialogTitle>Dialog Title</DialogTitle>
+    <DialogContent>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+            Instructions or description
+        </Typography>
+        <TextField /* ... */ />
+    </DialogContent>
+    <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleSave} variant="contained">
+            Save
+        </Button>
+    </DialogActions>
+</Dialog>
+```
+
+### Snackbar Notification Pattern
+
+```tsx
+<Snackbar open={showNotification} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+    <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+        Action completed successfully!
+    </Alert>
+</Snackbar>
+```
