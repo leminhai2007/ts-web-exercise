@@ -28,6 +28,7 @@ import {
     Flag as SuicideIcon,
     EditNote as NoteIcon,
     BorderColor as NumberIcon,
+    RestartAlt as ResetIcon,
 } from '@mui/icons-material';
 import { generateSudoku, parsePuzzle } from '../api/sudokuApi';
 import type { DifficultyLevel } from '../api/sudokuApi';
@@ -196,6 +197,18 @@ export const Sudoku = () => {
         generateNewGame(selectedDifficulty);
     };
 
+    const handleResetGame = () => {
+        // Reset userInput to original puzzle state
+        setUserInput(JSON.parse(JSON.stringify(puzzle)));
+        setNotes({});
+        setGameGivenUp(false);
+        setSelectedCell(null);
+        setNoteMode(false);
+        setValidationError(null);
+        setInvalidCells(new Set());
+        setPopoverAnchor(null);
+    };
+
     const handleCellClick = (row: number, col: number, event: React.MouseEvent<HTMLElement>) => {
         if (gameGivenUp) return;
         if (puzzle[row][col] !== 0) return; // Can't select pre-filled cells
@@ -337,6 +350,33 @@ export const Sudoku = () => {
         return userInput.every((row, r) => row.every((cell, c) => cell === solution[r][c]));
     };
 
+    const getRemainingNumbers = (): Map<number, number> => {
+        const counts = new Map<number, number>();
+
+        // Initialize all numbers 1-9 with count 0
+        for (let i = 1; i <= 9; i++) {
+            counts.set(i, 0);
+        }
+
+        // Count occurrences of each number in userInput
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                const num = userInput[row][col];
+                if (num !== 0) {
+                    counts.set(num, (counts.get(num) || 0) + 1);
+                }
+            }
+        }
+
+        // Calculate remaining (9 - count)
+        const remaining = new Map<number, number>();
+        for (let i = 1; i <= 9; i++) {
+            remaining.set(i, 9 - (counts.get(i) || 0));
+        }
+
+        return remaining;
+    };
+
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
@@ -348,38 +388,63 @@ export const Sudoku = () => {
                     <Typography variant="h6" component="h1" sx={{ flexGrow: 1, color: 'text.primary', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                         Sudoku Game
                     </Typography>
-                    <Chip
-                        label={gameGivenUp ? 'Game Over' : isSolved() ? 'Solved!' : 'Playing'}
-                        color={gameGivenUp ? 'error' : isSolved() ? 'success' : 'primary'}
-                        sx={{ mr: 1, fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
-                    />
+                    <Chip label={`Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`} color="primary" variant="outlined" sx={{ fontWeight: 600 }} />
                 </Toolbar>
             </AppBar>
 
             <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 } }}>
                 {/* Controls */}
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }} alignItems="center" justifyContent="center">
-                    <Chip label={`Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`} color="primary" variant="outlined" sx={{ fontWeight: 600 }} />
+                    <Stack direction="row" spacing={1}>
+                        <Button
+                            variant="contained"
+                            startIcon={<RefreshIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            onClick={handleNewGame}
+                            disabled={loading}
+                            sx={{
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                                minWidth: { xs: 'auto', sm: 'auto' },
+                                px: { xs: 1.5, sm: 2 },
+                                '&:hover': {
+                                    bgcolor: 'primary.dark',
+                                },
+                            }}
+                        >
+                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>New Game</Box>
+                            <RefreshIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        </Button>
 
-                    <Button
-                        variant="contained"
-                        startIcon={<RefreshIcon />}
-                        onClick={handleNewGame}
-                        disabled={loading}
-                        sx={{
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                bgcolor: 'primary.dark',
-                            },
-                        }}
-                    >
-                        New Game
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            onClick={handleResetGame}
+                            disabled={loading || gameGivenUp}
+                            color="warning"
+                            sx={{
+                                minWidth: { xs: 'auto', sm: 'auto' },
+                                px: { xs: 1.5, sm: 2 },
+                            }}
+                        >
+                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Reset</Box>
+                            <ResetIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        </Button>
 
-                    <Button variant="outlined" startIcon={<SuicideIcon />} onClick={() => setConfirmDialogOpen(true)} disabled={loading || gameGivenUp} color="error">
-                        Give Up
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            startIcon={<SuicideIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            onClick={() => setConfirmDialogOpen(true)}
+                            disabled={loading || gameGivenUp}
+                            color="error"
+                            sx={{
+                                minWidth: { xs: 'auto', sm: 'auto' },
+                                px: { xs: 1.5, sm: 2 },
+                            }}
+                        >
+                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Give Up</Box>
+                            <SuicideIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        </Button>
+                    </Stack>
 
                     <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} size="small">
                         <ToggleButton value={false}>
@@ -452,30 +517,70 @@ export const Sudoku = () => {
                                             gap: 1,
                                         }}
                                     >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                                            <Button
-                                                key={num}
-                                                variant="outlined"
-                                                onClick={() => {
-                                                    handleNumberInput(num);
-                                                    if (!noteMode) handlePopoverClose();
-                                                }}
-                                                sx={{
-                                                    minWidth: 0,
-                                                    aspectRatio: '1',
-                                                    fontSize: '1.25rem',
-                                                    fontWeight: 600,
-                                                    borderColor: 'primary.main',
-                                                    color: 'primary.main',
-                                                    '&:hover': {
-                                                        bgcolor: 'primary.main',
-                                                        color: 'white',
-                                                    },
-                                                }}
-                                            >
-                                                {num}
-                                            </Button>
-                                        ))}
+                                        {(() => {
+                                            const remainingNumbers = getRemainingNumbers();
+                                            return [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+                                                const remaining = remainingNumbers.get(num) || 0;
+                                                const isDisabled = remaining === 0;
+                                                return (
+                                                    <Box key={num} sx={{ position: 'relative' }}>
+                                                        <Button
+                                                            variant="outlined"
+                                                            onClick={() => {
+                                                                handleNumberInput(num);
+                                                                if (!noteMode) handlePopoverClose();
+                                                            }}
+                                                            disabled={isDisabled && !noteMode}
+                                                            sx={{
+                                                                minWidth: 0,
+                                                                width: '100%',
+                                                                aspectRatio: '1',
+                                                                fontSize: '1.5rem',
+                                                                fontWeight: 600,
+                                                                borderColor: isDisabled && !noteMode ? 'grey.300' : 'primary.main',
+                                                                color: isDisabled && !noteMode ? 'grey.400' : 'primary.main',
+                                                                '&:hover': {
+                                                                    bgcolor: isDisabled && !noteMode ? 'transparent' : 'primary.main',
+                                                                    color: isDisabled && !noteMode ? 'grey.400' : 'white',
+                                                                    '& + .remaining-badge': {
+                                                                        color: isDisabled && !noteMode ? undefined : 'white',
+                                                                    },
+                                                                },
+                                                                '&.Mui-disabled': {
+                                                                    borderColor: 'grey.300',
+                                                                    color: 'grey.400',
+                                                                },
+                                                            }}
+                                                        >
+                                                            {num}
+                                                        </Button>
+                                                        <Box
+                                                            className="remaining-badge"
+                                                            sx={{
+                                                                position: 'absolute',
+                                                                top: '3px',
+                                                                right: '3px',
+                                                                minWidth: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '10px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 700,
+                                                                padding: '0 5px',
+                                                                bgcolor: remaining > 3 ? 'primary.main' : remaining > 0 ? 'warning.main' : 'error.main',
+                                                                color: 'white',
+                                                                pointerEvents: 'none',
+                                                                transition: 'color 0.2s',
+                                                            }}
+                                                        >
+                                                            {remaining}
+                                                        </Box>
+                                                    </Box>
+                                                );
+                                            });
+                                        })()}
                                     </Box>
                                     <ButtonGroup fullWidth variant="outlined">
                                         <Button
