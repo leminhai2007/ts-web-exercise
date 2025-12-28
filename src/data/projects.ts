@@ -22,5 +22,12 @@ export const projects: Project[] = [
         categories: ['tool', 'random'],
         path: '/lucky-wheel',
     },
+    {
+        id: 'tetris',
+        name: 'Tetris',
+        description: 'Classic Tetris game. Stack blocks and clear lines! Desktop: arrow keys, Mobile: touch controls.',
+        categories: ['game', 'puzzle'],
+        path: '/tetris',
+    },
     // Add more projects here as you build them
 ];
