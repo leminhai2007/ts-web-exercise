@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Box, Container, Typography, Paper, Button, IconButton, AppBar, Toolbar, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Chip } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, SportsEsports as GameIcon, Refresh as RefreshIcon, ArrowUpward, ArrowDownward, ArrowBack, ArrowForward } from '@mui/icons-material';
+import { Box, Typography, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Chip } from '@mui/material';
+import { SportsEsports as GameIcon, AddCircleOutline as NewGameIcon, ArrowUpward, ArrowDownward, ArrowBack, ArrowForward } from '@mui/icons-material';
+import { ProjectLayout } from './ProjectLayout';
 
 type Board = number[][];
 
@@ -284,96 +284,74 @@ export const Game2048 = () => {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-            <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-                <Toolbar>
-                    <IconButton component={Link} to="/" edge="start" sx={{ mr: 2 }}>
-                        <ArrowBackIcon />
-                    </IconButton>
-                    <GameIcon sx={{ mr: 2, color: 'primary.main', display: { xs: 'none', sm: 'block' } }} />
-                    <Typography variant="h6" component="h1" sx={{ flexGrow: 1, color: 'text.primary', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        2048 Game
-                    </Typography>
-                    <Chip label={`Score: ${score}`} color="primary" sx={{ mr: 1, fontSize: { xs: '0.875rem', sm: '1rem' }, fontWeight: 600 }} />
-                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                        <Button variant="contained" startIcon={<RefreshIcon />} onClick={resetGame} size="small">
-                            New Game
-                        </Button>
+        <ProjectLayout title="2048" icon={<GameIcon />} maxWidth="sm" containerPadding={{ xs: 2, sm: 4 }}>
+            {/* Score and New Game Button */}
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    Score:{' '}
+                    <Box component="span" sx={{ color: 'primary.main' }}>
+                        {score}
                     </Box>
-                    <IconButton
-                        onClick={resetGame}
-                        size="small"
-                        sx={{
-                            display: { xs: 'inline-flex', sm: 'none' },
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                bgcolor: 'primary.dark',
-                            },
-                        }}
-                    >
-                        <RefreshIcon fontSize="small" />
-                    </IconButton>
-                </Toolbar>
-            </AppBar>
+                </Typography>
+                <Button variant="contained" onClick={resetGame} startIcon={<NewGameIcon />} size="medium">
+                    New Game
+                </Button>
+            </Stack>
+            <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: { xs: 2, sm: 3 }, bgcolor: 'grey.100', mx: { xs: 0.5, sm: 0 } }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: { xs: 0.5, sm: 2 },
+                        p: { xs: 0.5, sm: 2 },
+                        bgcolor: 'grey.200',
+                        borderRadius: 2,
+                        maxWidth: '100%',
+                    }}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {board.map((row, i) =>
+                        row.map((cell, j) => (
+                            <Paper
+                                key={`${i}-${j}`}
+                                elevation={cell > 0 ? 4 : 0}
+                                sx={{
+                                    aspectRatio: '1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: cell > 0 ? getTileColor(cell) : 'grey.300',
+                                    color: getTileTextColor(cell),
+                                    fontSize: {
+                                        xs: cell >= 1000 ? '1rem' : cell >= 100 ? '1.25rem' : '1.5rem',
+                                        sm: cell >= 1000 ? '2rem' : cell >= 100 ? '2.5rem' : '3rem',
+                                    },
+                                    fontWeight: 700,
+                                    borderRadius: { xs: 0.5, sm: 1 },
+                                    transition: 'all 0.15s ease-in-out',
+                                    minWidth: 0,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {cell > 0 && cell}
+                            </Paper>
+                        ))
+                    )}
+                </Box>
+            </Paper>
 
-            <Container maxWidth="sm" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 0.5, sm: 3 } }}>
-                <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: { xs: 2, sm: 3 }, bgcolor: 'grey.100', mx: { xs: 0.5, sm: 0 } }}>
-                    <Box
-                        sx={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(4, 1fr)',
-                            gap: { xs: 0.5, sm: 2 },
-                            p: { xs: 0.5, sm: 2 },
-                            bgcolor: 'grey.200',
-                            borderRadius: 2,
-                            maxWidth: '100%',
-                        }}
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                    >
-                        {board.map((row, i) =>
-                            row.map((cell, j) => (
-                                <Paper
-                                    key={`${i}-${j}`}
-                                    elevation={cell > 0 ? 4 : 0}
-                                    sx={{
-                                        aspectRatio: '1',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        bgcolor: cell > 0 ? getTileColor(cell) : 'grey.300',
-                                        color: getTileTextColor(cell),
-                                        fontSize: {
-                                            xs: cell >= 1000 ? '1rem' : cell >= 100 ? '1.25rem' : '1.5rem',
-                                            sm: cell >= 1000 ? '2rem' : cell >= 100 ? '2.5rem' : '3rem',
-                                        },
-                                        fontWeight: 700,
-                                        borderRadius: { xs: 0.5, sm: 1 },
-                                        transition: 'all 0.15s ease-in-out',
-                                        minWidth: 0,
-                                        overflow: 'hidden',
-                                    }}
-                                >
-                                    {cell > 0 && cell}
-                                </Paper>
-                            ))
-                        )}
-                    </Box>
-                </Paper>
-
-                <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-                    <Typography variant="body2" color="text.secondary" align="center" paragraph sx={{ mb: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                        Use arrow keys or swipe to move tiles. Combine tiles with the same number to create larger numbers!
-                    </Typography>
-                    <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
-                        <Chip icon={<ArrowUpward />} label="Up" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                        <Chip icon={<ArrowDownward />} label="Down" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                        <Chip icon={<ArrowBack />} label="Left" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                        <Chip icon={<ArrowForward />} label="Right" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                    </Stack>
-                </Paper>
-            </Container>
+            <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
+                <Typography variant="body2" color="text.secondary" align="center" paragraph sx={{ mb: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                    Use arrow keys or swipe to move tiles. Combine tiles with the same number to create larger numbers!
+                </Typography>
+                <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
+                    <Chip icon={<ArrowUpward />} label="Up" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
+                    <Chip icon={<ArrowDownward />} label="Down" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
+                    <Chip icon={<ArrowBack />} label="Left" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
+                    <Chip icon={<ArrowForward />} label="Right" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
+                </Stack>
+            </Paper>
 
             <Dialog open={won && !gameOver} onClose={() => setWon(false)} maxWidth="xs" fullWidth>
                 <DialogTitle sx={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 600 }}>You Win! 🎉</DialogTitle>
@@ -405,6 +383,6 @@ export const Game2048 = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Box>
+        </ProjectLayout>
     );
 };

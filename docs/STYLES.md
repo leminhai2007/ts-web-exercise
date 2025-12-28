@@ -4,6 +4,40 @@
 
 This project uses **Material-UI (MUI)** as its primary UI framework. All components are styled using MUI's comprehensive component library and theming system, replacing traditional CSS files with a modern, component-based styling approach.
 
+## Shared Layout Components
+
+### ProjectLayout Component
+
+A consistent layout template used across all project pages (Game2048, Sudoku, Lucky Wheel) to ensure uniform styling.
+
+**Location:** `src/components/ProjectLayout.tsx`
+
+**Features:**
+
+- Standardized AppBar with back button, icon, and title
+- Consistent typography (h6 variant, 1.1rem on mobile, 1.25rem on desktop, weight 600)
+- Configurable action buttons (separate for desktop/mobile)
+- Responsive container with configurable max width and padding
+- Primary color AppBar with sticky positioning
+
+**Props:**
+
+- `title`: Page title displayed in AppBar
+- `icon`: Icon displayed next to title
+- `actions`: Action buttons for desktop
+- `mobileActions`: Action buttons for mobile (optional, defaults to `actions`)
+- `maxWidth`: Container max width ('xs' | 'sm' | 'md' | 'lg' | 'xl' | false)
+- `containerPadding`: Custom padding object
+- `backgroundColor`: Background color for container area
+
+**Usage Example:**
+
+```tsx
+<ProjectLayout title="Game Title" icon={<GameIcon />} maxWidth="sm" actions={<Button>New Game</Button>}>
+    {/* Page content */}
+</ProjectLayout>
+```
+
 ## Structure
 
 ### Theme Configuration

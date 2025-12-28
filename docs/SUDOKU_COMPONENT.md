@@ -4,6 +4,70 @@
 
 The Sudoku component is a fully-featured implementation of the classic Sudoku puzzle game. It integrates with the [You Do Sudoku API](https://www.youdosudoku.com/) to generate puzzles and provides a complete gaming experience with validation, note-taking, difficulty levels, and local storage persistence.
 
+## Recent Updates
+
+### Layout Changes
+
+- Now uses `ProjectLayout` component for consistent styling
+- Difficulty chip moved from AppBar to main page content
+- Note Mode toggle moved to same line as difficulty chip for better space utilization
+- AppBar now shows just "Sudoku" with the game icon
+
+### Button Organization
+
+Buttons reorganized into logical groups:
+
+1. **First Row**: New Game, Give Up
+2. **Second Row**: Reset, Save, Load
+
+### UI Improvements
+
+- New Game button icon changed from Refresh to AddCircleOutline (distinguishes from Reset button)
+- Loading dialog added with spinning animation when generating new puzzles
+- All controls disabled during puzzle generation
+
+### Save/Load Feature
+
+#### Overview
+
+Users can save and load game progress including notes and cell values.
+
+#### Features
+
+- **Save Button**: Opens dialog to enter custom save name
+- **Load Button**: Shows list of saved games with Load and Delete options
+- **Starting State**: Automatically created when new game starts (cannot be deleted)
+- **Auto-clear**: Saves cleared when:
+    - User completes puzzle
+    - User gives up
+    - User starts new game
+
+#### Implementation Details
+
+**Interfaces:**
+
+```typescript
+interface SaveGame {
+    id: string;
+    name: string;
+    userInput: number[][];
+    notes: CellNote;
+    timestamp: number;
+}
+```
+
+**Storage:**
+
+- Saves stored in component state (not persisted to localStorage)
+- Only valid for current game session
+- Starting State created with puzzle initialization
+
+**Load Dialog:**
+
+- Icon buttons for Load and Delete actions (matches Lucky Wheel style)
+- Displays save name and timestamp
+- Starting State protected from deletion
+
 ## File Structure
 
 ### 1. `src/api/sudokuApi.ts`

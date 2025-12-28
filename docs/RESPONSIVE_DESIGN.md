@@ -50,6 +50,49 @@ MUI uses a standardized breakpoint system:
 <Typography sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}>
 ```
 
+## Shared Layout System
+
+### ProjectLayout Component
+
+The `ProjectLayout` component provides consistent responsive behavior across all project pages (2048, Sudoku, Lucky Wheel):
+
+**Key Responsive Features:**
+
+- **AppBar**: Fixed height, responsive padding, back button for navigation
+- **Container**: Configurable `maxWidth` prop (sm, md, lg, xl) controls content width on large screens
+- **Action Buttons**: Different buttons for mobile vs desktop via `actions` and `mobileActions` props
+- **Padding**: Consistent container padding across breakpoints via `containerPadding` prop
+- **Typography**: Consistent title styling with proper overflow handling
+
+**Button Organization Pattern:**
+
+- Desktop: Full-size buttons with text labels in AppBar
+- Mobile: Icon buttons to conserve space
+- Multi-row layouts: Use `flexWrap: 'wrap'` for automatic stacking on small screens
+
+**Example Usage:**
+
+```tsx
+<ProjectLayout title="Sudoku" icon={ViewComfyIcon} maxWidth="md" containerPadding={2} actions={desktopActions} mobileActions={mobileActions}>
+    {/* Game content */}
+</ProjectLayout>
+```
+
+### Sudoku Responsive Layout
+
+**Button Organization:**
+
+- Row 1: New Game + Give Up (primary actions)
+- Row 2: Reset + Save + Load (secondary actions)
+- Uses `flexWrap: 'wrap'` to stack on mobile automatically
+- Consistent spacing with `gap: 1` between button groups
+
+**Difficulty + Toggle Row:**
+
+- Difficulty chip and Note Mode toggle on same line
+- `flexWrap: 'wrap'` ensures stacking on very small screens
+- Centered with `justifyContent: 'center'`
+
 ## Responsive Features by Component
 
 ### 1. Theme Configuration (`App.tsx`)

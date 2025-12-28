@@ -498,41 +498,50 @@ const getTileTextColor = (value: number): string => {
 
 ## UI Structure
 
-### 1. AppBar (Header)
+### 1. ProjectLayout (Consistent Layout)
 
 ```tsx
-<AppBar position="static" elevation={0}>
-    <Toolbar>
-        <IconButton component={Link} to="/" edge="start">
-            <ArrowBackIcon />
-        </IconButton>
-        <GameIcon sx={{ display: { xs: 'none', sm: 'block' } }} />
-        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-            2048 Game
-        </Typography>
-        <Chip label={`Score: ${score}`} color="primary" />
-        {/* Desktop: Full button, Mobile: Icon only */}
-        <Button variant="contained" startIcon={<RefreshIcon />}>
-            New Game
-        </Button>
-        <IconButton>
-            {' '}
-            {/* Mobile only */}
-            <RefreshIcon fontSize="small" />
-        </IconButton>
-    </Toolbar>
-</AppBar>
+<ProjectLayout
+    title="2048"
+    icon={<GameIcon />}
+    maxWidth="sm"
+    containerPadding={{ xs: 2, sm: 4 }}
+>
 ```
 
 **Features**:
 
-- Back button to navigate home
-- Game title with responsive font size
-- Score display using MUI Chip
-- New Game button (full on desktop, icon on mobile)
-- Game icon hidden on mobile to save space
+- Uses shared `ProjectLayout` component for consistency
+- Back button to navigate home (in AppBar)
+- Game icon and title "2048" in AppBar
+- No action buttons in AppBar (all controls on main page)
+- Responsive container with sm maxWidth
 
-### 2. Game Board
+### 2. Score and Controls
+
+```tsx
+<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+    <Typography variant="h5" sx={{ fontWeight: 600 }}>
+        Score:{' '}
+        <Box component="span" sx={{ color: 'primary.main' }}>
+            {score}
+        </Box>
+    </Typography>
+    <Button variant="contained" onClick={resetGame} startIcon={<NewGameIcon />} size="medium">
+        New Game
+    </Button>
+</Stack>
+```
+
+**Features**:
+
+- Score displayed prominently at top with h5 Typography
+- Score value highlighted in primary color (indigo)
+- New Game button with AddCircleOutline icon (not Refresh icon)
+- Horizontal Stack layout with space-between
+- Button calls `resetGame()` which clears localStorage and starts fresh
+
+### 3. Game Board
 
 ```tsx
 <Container maxWidth="sm" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 0.5, sm: 3 } }}>
@@ -585,7 +594,7 @@ const getTileTextColor = (value: number): string => {
 - Responsive font sizes that scale with tile value
 - Container padding adjusts for small screens
 
-### 3. Win Dialog
+### 4. Win Dialog
 
 ```tsx
 <Dialog open={won && !gameOver} onClose={() => setWon(false)} maxWidth="xs" fullWidth>
@@ -611,7 +620,7 @@ const getTileTextColor = (value: number): string => {
 - **Continue Playing**: Dismiss dialog and keep playing for higher scores
 - **New Game**: Reset game and clear saved progress
 
-### 4. Game Over Dialog
+### 5. Game Over Dialog
 
 ```tsx
 <Dialog open={gameOver} maxWidth="xs" fullWidth>
@@ -629,7 +638,7 @@ const getTileTextColor = (value: number): string => {
 
 **Conditional**: Only shows when `gameOver=true`.
 
-### 5. Instructions
+### 6. Instructions
 
 ```tsx
 <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 } }}>
@@ -737,9 +746,7 @@ Where n = GRID_SIZE (4 in this case)
 Potential improvements:
 
 - Undo move feature
-- Save game state to localStorage
 - Animations for tile movements and merges
-- Touch/swipe controls for mobile
 - High score tracking
 - Multiple grid sizes (3x3, 5x5, etc.)
 - Sound effects

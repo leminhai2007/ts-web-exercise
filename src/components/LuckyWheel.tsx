@@ -1,14 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import {
     Box,
-    Container,
     Typography,
     Paper,
     Button,
     IconButton,
-    AppBar,
-    Toolbar,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -25,7 +21,6 @@ import {
     Alert,
 } from '@mui/material';
 import {
-    ArrowBack as ArrowBackIcon,
     Casino as WheelIcon,
     Edit as EditIcon,
     FolderOpen as FolderIcon,
@@ -34,6 +29,7 @@ import {
     Delete as DeleteIcon,
     EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
+import { ProjectLayout } from './ProjectLayout';
 import type { WheelItem, SavedWheel } from '../types/LuckyWheel';
 
 const DEFAULT_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'];
@@ -188,6 +184,13 @@ export const LuckyWheel = () => {
         drawWheel();
     }, [drawWheel]);
 
+    // Ensure wheel is drawn when canvas ref is ready
+    useEffect(() => {
+        if (canvasRef.current) {
+            drawWheel();
+        }
+    }, [items, rotation, drawWheel]);
+
     const spinWheel = () => {
         if (isSpinning || items.length === 0) return;
 
@@ -332,82 +335,73 @@ export const LuckyWheel = () => {
     const canvasSize = isMobile ? 300 : 450;
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-            {/* App Bar */}
-            <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-                <Toolbar>
-                    <IconButton edge="start" component={Link} to="/" sx={{ mr: 2, color: 'text.primary' }}>
-                        <ArrowBackIcon />
-                    </IconButton>
-                    <WheelIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'text.primary' }}>
-                        Lucky Wheel
+        <ProjectLayout
+            title="Lucky Wheel"
+            icon={<WheelIcon />}
+            maxWidth="lg"
+            actions={
+                <Button startIcon={<ShareIcon />} onClick={handleShareWheel}>
+                    Share
+                </Button>
+            }
+            mobileActions={
+                <IconButton onClick={handleShareWheel} color="inherit">
+                    <ShareIcon />
+                </IconButton>
+            }
+        >
+            {/* Action Buttons */}
+            <Stack direction="row" spacing={2} sx={{ mb: 3, justifyContent: 'center' }}>
+                <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit} sx={{ display: isMobile ? 'none' : 'flex' }}>
+                    Edit
+                </Button>
+                <IconButton onClick={handleEdit} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
+                    <EditIcon />
+                </IconButton>
+
+                <Button variant="outlined" startIcon={<SaveIcon />} onClick={openSaveDialog} sx={{ display: isMobile ? 'none' : 'flex' }}>
+                    Save
+                </Button>
+                <IconButton onClick={openSaveDialog} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
+                    <SaveIcon />
+                </IconButton>
+
+                <Button variant="outlined" startIcon={<FolderIcon />} onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'none' : 'flex' }}>
+                    Load
+                </Button>
+                <IconButton onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
+                    <FolderIcon />
+                </IconButton>
+            </Stack>
+
+            {/* Main Content - Wheel */}
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Paper
+                    sx={{
+                        p: 3,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                    }}
+                >
+                    {/* Wheel Canvas */}
+                    <Box onClick={spinWheel} sx={{ cursor: isSpinning ? 'wait' : 'pointer' }}>
+                        <canvas
+                            ref={canvasRef}
+                            width={canvasSize}
+                            height={canvasSize}
+                            style={{
+                                maxWidth: '100%',
+                                filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
+                                transition: 'transform 0.2s',
+                            }}
+                        />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>
+                        {isSpinning ? 'Spinning...' : 'Click wheel to spin'}
                     </Typography>
-
-                    {/* Share Button Only */}
-                    <Button startIcon={<ShareIcon />} onClick={handleShareWheel} sx={{ display: isMobile ? 'none' : 'flex' }}>
-                        Share
-                    </Button>
-                    <IconButton onClick={handleShareWheel} sx={{ display: isMobile ? 'flex' : 'none', color: 'text.primary' }}>
-                        <ShareIcon />
-                    </IconButton>
-                </Toolbar>
-            </AppBar>
-
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                {/* Main Content - Wheel with Action Buttons on Top */}
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <Paper
-                        sx={{
-                            p: 3,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}
-                    >
-                        {/* Action Buttons Above Wheel */}
-                        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-                            <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit} sx={{ display: isMobile ? 'none' : 'flex' }}>
-                                Edit
-                            </Button>
-                            <IconButton onClick={handleEdit} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
-                                <EditIcon />
-                            </IconButton>
-
-                            <Button variant="outlined" startIcon={<SaveIcon />} onClick={openSaveDialog} sx={{ display: isMobile ? 'none' : 'flex' }}>
-                                Save
-                            </Button>
-                            <IconButton onClick={openSaveDialog} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
-                                <SaveIcon />
-                            </IconButton>
-
-                            <Button variant="outlined" startIcon={<FolderIcon />} onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'none' : 'flex' }}>
-                                Load
-                            </Button>
-                            <IconButton onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
-                                <FolderIcon />
-                            </IconButton>
-                        </Stack>
-
-                        {/* Wheel Canvas */}
-                        <Box onClick={spinWheel} sx={{ cursor: isSpinning ? 'wait' : 'pointer' }}>
-                            <canvas
-                                ref={canvasRef}
-                                width={canvasSize}
-                                height={canvasSize}
-                                style={{
-                                    maxWidth: '100%',
-                                    filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
-                                    transition: 'transform 0.2s',
-                                }}
-                            />
-                        </Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>
-                            {isSpinning ? 'Spinning...' : 'Click wheel to spin'}
-                        </Typography>
-                    </Paper>
-                </Box>
-            </Container>
+                </Paper>
+            </Box>
 
             {/* Save Wheel Dialog */}
             <Dialog open={showSaveDialog} onClose={() => setShowSaveDialog(false)} maxWidth="xs" fullWidth>
@@ -545,6 +539,6 @@ export const LuckyWheel = () => {
                     URL copied to clipboard!
                 </Alert>
             </Snackbar>
-        </Box>
+        </ProjectLayout>
     );
 };

@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
     Box,
-    Container,
     Typography,
     Paper,
     Button,
-    IconButton,
-    AppBar,
-    Toolbar,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -20,22 +15,40 @@ import {
     Alert,
     Popover,
     ButtonGroup,
+    TextField,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    IconButton,
 } from '@mui/material';
 import {
-    ArrowBack as ArrowBackIcon,
     GridOn as SudokuIcon,
     Refresh as RefreshIcon,
+    AddCircleOutline as NewGameIcon,
     Flag as SuicideIcon,
     EditNote as NoteIcon,
     BorderColor as NumberIcon,
     RestartAlt as ResetIcon,
+    Save as SaveIcon,
+    FolderOpen as LoadIcon,
+    Delete as DeleteIcon,
 } from '@mui/icons-material';
+import { ProjectLayout } from './ProjectLayout';
 import { generateSudoku, parsePuzzle } from '../api/sudokuApi';
 import type { DifficultyLevel } from '../api/sudokuApi';
 import { SudokuBoard } from './SudokuBoard';
 
 interface CellNote {
     [key: string]: Set<number>; // key format: "row-col"
+}
+
+interface SaveGame {
+    id: string;
+    name: string;
+    userInput: number[][];
+    notes: CellNote;
+    timestamp: number;
 }
 
 interface GameState {
@@ -112,6 +125,10 @@ export const Sudoku = () => {
     const [invalidCells, setInvalidCells] = useState<Set<string>>(new Set());
     const [newGameDialogOpen, setNewGameDialogOpen] = useState(false);
     const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('easy');
+    const [savedGames, setSavedGames] = useState<SaveGame[]>([]);
+    const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+    const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+    const [saveName, setSaveName] = useState('');
 
     const generateNewGame = async (selectedDifficulty: DifficultyLevel) => {
         setLoading(true);
@@ -125,13 +142,25 @@ export const Sudoku = () => {
 
             console.log('Setting game state...');
             setPuzzle(parsedPuzzle);
-            setUserInput(JSON.parse(JSON.stringify(parsedPuzzle))); // Deep copy
+            const initialInput = JSON.parse(JSON.stringify(parsedPuzzle));
+            setUserInput(initialInput);
             setSolution(parsedSolution);
             setDifficulty(selectedDifficulty);
             setNotes({});
             setGameGivenUp(false);
             setSelectedCell(null);
             setNoteMode(false);
+
+            // Clear all saves and create starting state
+            const startingSave: SaveGame = {
+                id: 'starting_state',
+                name: 'Starting State',
+                userInput: initialInput,
+                notes: {},
+                timestamp: Date.now(),
+            };
+            setSavedGames([startingSave]);
+
             console.log('Game generated successfully');
         } catch (err) {
             console.error('Error in generateNewGame:', err);
@@ -340,6 +369,47 @@ export const Sudoku = () => {
         setSelectedCell(null);
         setNoteMode(false);
         setPopoverAnchor(null);
+        // Clear saves when giving up
+        setSavedGames([]);
+    };
+
+    const handleSaveGame = () => {
+        const name = saveName.trim();
+        if (!name) return;
+
+        // Convert notes Sets to arrays for storage
+        const notesAsArrays: { [key: string]: number[] } = {};
+        Object.entries(notes).forEach(([key, value]) => {
+            notesAsArrays[key] = Array.from(value);
+        });
+
+        const newSave: SaveGame = {
+            id: Date.now().toString(),
+            name,
+            userInput: JSON.parse(JSON.stringify(userInput)),
+            notes: notes, // Store the actual Sets
+            timestamp: Date.now(),
+        };
+
+        setSavedGames([...savedGames, newSave]);
+        setSaveName('');
+        setSaveDialogOpen(false);
+    };
+
+    const handleLoadGame = (save: SaveGame) => {
+        setUserInput(JSON.parse(JSON.stringify(save.userInput)));
+        setNotes(JSON.parse(JSON.stringify(save.notes)));
+        setLoadDialogOpen(false);
+        setSelectedCell(null);
+        setPopoverAnchor(null);
+        setValidationError(null);
+        setInvalidCells(new Set());
+    };
+
+    const handleDeleteSave = (id: string) => {
+        // Prevent deleting the starting state
+        if (id === 'starting_state') return;
+        setSavedGames(savedGames.filter(save => save.id !== id));
     };
 
     const handlePopoverClose = () => {
@@ -349,6 +419,16 @@ export const Sudoku = () => {
     const isSolved = (): boolean => {
         return userInput.every((row, r) => row.every((cell, c) => cell === solution[r][c]));
     };
+
+    // Clear saves when game is completed
+    useEffect(() => {
+        if (puzzle.length > 0 && !gameGivenUp) {
+            const solved = userInput.every((row, r) => row.every((cell, c) => cell === solution[r][c]));
+            if (solved) {
+                setSavedGames([]);
+            }
+        }
+    }, [userInput, puzzle, solution, gameGivenUp]);
 
     const getRemainingNumbers = (): Map<number, number> => {
         const counts = new Map<number, number>();
@@ -378,279 +458,404 @@ export const Sudoku = () => {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-            <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-                <Toolbar>
-                    <IconButton edge="start" component={Link} to="/" sx={{ mr: 2 }}>
-                        <ArrowBackIcon />
-                    </IconButton>
-                    <SudokuIcon sx={{ mr: 2, color: 'primary.main', display: { xs: 'none', sm: 'block' } }} />
-                    <Typography variant="h6" component="h1" sx={{ flexGrow: 1, color: 'text.primary', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        Sudoku Game
-                    </Typography>
-                    <Chip label={`Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`} color="primary" variant="outlined" sx={{ fontWeight: 600 }} />
-                </Toolbar>
-            </AppBar>
+        <ProjectLayout title="Sudoku" icon={<SudokuIcon />} maxWidth="lg" containerPadding={{ xs: 2, sm: 4 }}>
+            {/* Difficulty Chip and Note Mode Toggle */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                <Chip
+                    label={`Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`}
+                    color="primary"
+                    size="medium"
+                    sx={{ fontWeight: 600, fontSize: '0.9rem' }}
+                />
+                <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} size="small" disabled={loading}>
+                    <ToggleButton value={false}>
+                        <NumberIcon sx={{ mr: { xs: 0, sm: 1 } }} />
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Number</Box>
+                    </ToggleButton>
+                    <ToggleButton value={true}>
+                        <NoteIcon sx={{ mr: { xs: 0, sm: 1 } }} />
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Note</Box>
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
 
-            <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 } }}>
-                {/* Controls */}
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }} alignItems="center" justifyContent="center">
-                    <Stack direction="row" spacing={1}>
-                        <Button
-                            variant="contained"
-                            startIcon={<RefreshIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-                            onClick={handleNewGame}
-                            disabled={loading}
-                            sx={{
-                                bgcolor: 'primary.main',
-                                color: 'white',
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                                '&:hover': {
-                                    bgcolor: 'primary.dark',
-                                },
-                            }}
-                        >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>New Game</Box>
-                            <RefreshIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
-                        </Button>
+            {/* Controls */}
+            <Stack spacing={2} sx={{ mb: 3 }} alignItems="center">
+                {/* First Row: New Game and Give Up */}
+                <Stack direction="row" spacing={1} justifyContent="center">
+                    <Button
+                        variant="contained"
+                        startIcon={<NewGameIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        onClick={handleNewGame}
+                        disabled={loading}
+                        sx={{
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            minWidth: { xs: 'auto', sm: 'auto' },
+                            px: { xs: 1.5, sm: 2 },
+                            '&:hover': {
+                                bgcolor: 'primary.dark',
+                            },
+                        }}
+                    >
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>New Game</Box>
+                        <NewGameIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                    </Button>
 
-                        <Button
-                            variant="outlined"
-                            startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-                            onClick={handleResetGame}
-                            disabled={loading || gameGivenUp}
-                            color="warning"
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
-                        >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Reset</Box>
-                            <ResetIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
-                        </Button>
-
-                        <Button
-                            variant="outlined"
-                            startIcon={<SuicideIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-                            onClick={() => setConfirmDialogOpen(true)}
-                            disabled={loading || gameGivenUp}
-                            color="error"
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
-                        >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Give Up</Box>
-                            <SuicideIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
-                        </Button>
-                    </Stack>
-
-                    <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} size="small">
-                        <ToggleButton value={false}>
-                            <NumberIcon sx={{ mr: { xs: 0, sm: 1 } }} />
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Number</Box>
-                        </ToggleButton>
-                        <ToggleButton value={true}>
-                            <NoteIcon sx={{ mr: { xs: 0, sm: 1 } }} />
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Note</Box>
-                        </ToggleButton>
-                    </ToggleButtonGroup>
+                    <Button
+                        variant="outlined"
+                        startIcon={<SuicideIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        onClick={() => setConfirmDialogOpen(true)}
+                        disabled={loading || gameGivenUp}
+                        color="error"
+                        sx={{
+                            minWidth: { xs: 'auto', sm: 'auto' },
+                            px: { xs: 1.5, sm: 2 },
+                        }}
+                    >
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Give Up</Box>
+                        <SuicideIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                    </Button>
                 </Stack>
 
-                {error && (
-                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-                        {error}
-                    </Alert>
-                )}
+                {/* Second Row: Reset, Save, Load */}
+                <Stack direction="row" spacing={1} justifyContent="center">
+                    <Button
+                        variant="outlined"
+                        startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        onClick={handleResetGame}
+                        disabled={loading || gameGivenUp}
+                        color="warning"
+                        sx={{
+                            minWidth: { xs: 'auto', sm: 'auto' },
+                            px: { xs: 1.5, sm: 2 },
+                        }}
+                    >
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Reset</Box>
+                        <ResetIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                    </Button>
 
-                {loading && puzzle.length === 0 ? (
-                    <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography>Loading puzzle...</Typography>
-                    </Paper>
-                ) : puzzle.length > 0 ? (
-                    <>
-                        {/* Sudoku Board */}
-                        <SudokuBoard
-                            puzzle={puzzle}
-                            userInput={gameGivenUp ? solution : userInput}
-                            notes={notes}
-                            selectedCell={selectedCell}
-                            onCellClick={handleCellClick}
-                            gameGivenUp={gameGivenUp}
-                            invalidCells={invalidCells}
-                        />
+                    <Button
+                        variant="outlined"
+                        startIcon={<SaveIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        onClick={() => setSaveDialogOpen(true)}
+                        disabled={loading || gameGivenUp}
+                        sx={{
+                            minWidth: { xs: 'auto', sm: 'auto' },
+                            px: { xs: 1.5, sm: 2 },
+                        }}
+                    >
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Save</Box>
+                        <SaveIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                    </Button>
 
-                        {/* Number Input Popover */}
-                        <Popover
-                            open={Boolean(popoverAnchor) && !gameGivenUp && invalidCells.size === 0}
-                            anchorEl={popoverAnchor}
-                            onClose={handlePopoverClose}
-                            anchorOrigin={{
-                                vertical: 'bottom',
-                                horizontal: 'right',
-                            }}
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'left',
+                    <Button
+                        variant="outlined"
+                        startIcon={<LoadIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        onClick={() => setLoadDialogOpen(true)}
+                        disabled={loading || gameGivenUp || savedGames.length === 0}
+                        sx={{
+                            minWidth: { xs: 'auto', sm: 'auto' },
+                            px: { xs: 1.5, sm: 2 },
+                        }}
+                    >
+                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Load</Box>
+                        <LoadIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                    </Button>
+                </Stack>
+            </Stack>
+
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+                    {error}
+                </Alert>
+            )}
+
+            {loading && puzzle.length === 0 ? (
+                <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography>Loading puzzle...</Typography>
+                </Paper>
+            ) : puzzle.length > 0 ? (
+                <>
+                    {/* Sudoku Board */}
+                    <SudokuBoard
+                        puzzle={puzzle}
+                        userInput={gameGivenUp ? solution : userInput}
+                        notes={notes}
+                        selectedCell={selectedCell}
+                        onCellClick={handleCellClick}
+                        gameGivenUp={gameGivenUp}
+                        invalidCells={invalidCells}
+                    />
+
+                    {/* Number Input Popover */}
+                    <Popover
+                        open={Boolean(popoverAnchor) && !gameGivenUp && invalidCells.size === 0}
+                        anchorEl={popoverAnchor}
+                        onClose={handlePopoverClose}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'left',
+                        }}
+                    >
+                        <Paper sx={{ p: 2, width: 280, minWidth: 280 }}>
+                            <Stack spacing={1.5}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        {noteMode ? 'Note Mode' : 'Number Mode'}
+                                    </Typography>
+                                    <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} size="small">
+                                        <ToggleButton value={false} sx={{ px: 1, py: 0.5 }} title="Number Mode">
+                                            <NumberIcon fontSize="small" />
+                                        </ToggleButton>
+                                        <ToggleButton value={true} sx={{ px: 1, py: 0.5 }} title="Note Mode">
+                                            <NoteIcon fontSize="small" />
+                                        </ToggleButton>
+                                    </ToggleButtonGroup>
+                                </Box>
+                                <Box
+                                    sx={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(3, 1fr)',
+                                        gap: 1,
+                                    }}
+                                >
+                                    {(() => {
+                                        const remainingNumbers = getRemainingNumbers();
+                                        return [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+                                            const remaining = remainingNumbers.get(num) || 0;
+                                            const isDisabled = remaining === 0;
+                                            return (
+                                                <Box key={num} sx={{ position: 'relative' }}>
+                                                    <Button
+                                                        variant="outlined"
+                                                        onClick={() => {
+                                                            handleNumberInput(num);
+                                                            if (!noteMode) handlePopoverClose();
+                                                        }}
+                                                        disabled={isDisabled && !noteMode}
+                                                        sx={{
+                                                            minWidth: 0,
+                                                            width: '100%',
+                                                            aspectRatio: '1',
+                                                            fontSize: '1.5rem',
+                                                            fontWeight: 600,
+                                                            borderColor: isDisabled && !noteMode ? 'grey.300' : 'primary.main',
+                                                            color: isDisabled && !noteMode ? 'grey.400' : 'primary.main',
+                                                            '&:hover': {
+                                                                bgcolor: isDisabled && !noteMode ? 'transparent' : 'primary.main',
+                                                                color: isDisabled && !noteMode ? 'grey.400' : 'white',
+                                                                '& + .remaining-badge': {
+                                                                    color: isDisabled && !noteMode ? undefined : 'white',
+                                                                },
+                                                            },
+                                                            '&.Mui-disabled': {
+                                                                borderColor: 'grey.300',
+                                                                color: 'grey.400',
+                                                            },
+                                                        }}
+                                                    >
+                                                        {num}
+                                                    </Button>
+                                                    <Box
+                                                        className="remaining-badge"
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: '3px',
+                                                            right: '3px',
+                                                            minWidth: '20px',
+                                                            height: '20px',
+                                                            borderRadius: '10px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: 700,
+                                                            padding: '0 5px',
+                                                            bgcolor: remaining > 3 ? 'primary.main' : remaining > 0 ? 'warning.main' : 'error.main',
+                                                            color: 'white',
+                                                            pointerEvents: 'none',
+                                                            transition: 'color 0.2s',
+                                                        }}
+                                                    >
+                                                        {remaining}
+                                                    </Box>
+                                                </Box>
+                                            );
+                                        });
+                                    })()}
+                                </Box>
+                                <ButtonGroup fullWidth variant="outlined">
+                                    <Button
+                                        onClick={() => {
+                                            handleClearCell();
+                                            handlePopoverClose();
+                                        }}
+                                        color="error"
+                                    >
+                                        Clear
+                                    </Button>
+                                    <Button onClick={handlePopoverClose}>Close</Button>
+                                </ButtonGroup>
+                            </Stack>
+                        </Paper>
+                    </Popover>
+
+                    {/* Validation Error */}
+                    {validationError && (
+                        <Alert
+                            severity="error"
+                            sx={{ mt: 2 }}
+                            onClose={() => {
+                                // Clear invalid numbers from the board
+                                const newUserInput = userInput.map(r => [...r]);
+                                invalidCells.forEach(key => {
+                                    const [r, c] = key.split('-').map(Number);
+                                    if (puzzle[r][c] === 0) {
+                                        // Only clear user-entered cells
+                                        newUserInput[r][c] = 0;
+                                    }
+                                });
+                                setUserInput(newUserInput);
+
+                                setValidationError(null);
+                                setInvalidCells(new Set());
+                                setSelectedCell(null);
+                                setPopoverAnchor(null);
                             }}
                         >
-                            <Paper sx={{ p: 2, width: 280, minWidth: 280 }}>
-                                <Stack spacing={1.5}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Typography variant="subtitle2" color="text.secondary">
-                                            {noteMode ? 'Note Mode' : 'Number Mode'}
-                                        </Typography>
-                                        <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} size="small">
-                                            <ToggleButton value={false} sx={{ px: 1, py: 0.5 }} title="Number Mode">
-                                                <NumberIcon fontSize="small" />
-                                            </ToggleButton>
-                                            <ToggleButton value={true} sx={{ px: 1, py: 0.5 }} title="Note Mode">
-                                                <NoteIcon fontSize="small" />
-                                            </ToggleButton>
-                                        </ToggleButtonGroup>
-                                    </Box>
-                                    <Box
-                                        sx={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(3, 1fr)',
-                                            gap: 1,
-                                        }}
-                                    >
-                                        {(() => {
-                                            const remainingNumbers = getRemainingNumbers();
-                                            return [1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
-                                                const remaining = remainingNumbers.get(num) || 0;
-                                                const isDisabled = remaining === 0;
-                                                return (
-                                                    <Box key={num} sx={{ position: 'relative' }}>
-                                                        <Button
-                                                            variant="outlined"
-                                                            onClick={() => {
-                                                                handleNumberInput(num);
-                                                                if (!noteMode) handlePopoverClose();
-                                                            }}
-                                                            disabled={isDisabled && !noteMode}
-                                                            sx={{
-                                                                minWidth: 0,
-                                                                width: '100%',
-                                                                aspectRatio: '1',
-                                                                fontSize: '1.5rem',
-                                                                fontWeight: 600,
-                                                                borderColor: isDisabled && !noteMode ? 'grey.300' : 'primary.main',
-                                                                color: isDisabled && !noteMode ? 'grey.400' : 'primary.main',
-                                                                '&:hover': {
-                                                                    bgcolor: isDisabled && !noteMode ? 'transparent' : 'primary.main',
-                                                                    color: isDisabled && !noteMode ? 'grey.400' : 'white',
-                                                                    '& + .remaining-badge': {
-                                                                        color: isDisabled && !noteMode ? undefined : 'white',
-                                                                    },
-                                                                },
-                                                                '&.Mui-disabled': {
-                                                                    borderColor: 'grey.300',
-                                                                    color: 'grey.400',
-                                                                },
-                                                            }}
-                                                        >
-                                                            {num}
-                                                        </Button>
-                                                        <Box
-                                                            className="remaining-badge"
-                                                            sx={{
-                                                                position: 'absolute',
-                                                                top: '3px',
-                                                                right: '3px',
-                                                                minWidth: '20px',
-                                                                height: '20px',
-                                                                borderRadius: '10px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: 700,
-                                                                padding: '0 5px',
-                                                                bgcolor: remaining > 3 ? 'primary.main' : remaining > 0 ? 'warning.main' : 'error.main',
-                                                                color: 'white',
-                                                                pointerEvents: 'none',
-                                                                transition: 'color 0.2s',
-                                                            }}
-                                                        >
-                                                            {remaining}
-                                                        </Box>
-                                                    </Box>
-                                                );
-                                            });
-                                        })()}
-                                    </Box>
-                                    <ButtonGroup fullWidth variant="outlined">
-                                        <Button
-                                            onClick={() => {
-                                                handleClearCell();
-                                                handlePopoverClose();
-                                            }}
-                                            color="error"
-                                        >
-                                            Clear
-                                        </Button>
-                                        <Button onClick={handlePopoverClose}>Close</Button>
-                                    </ButtonGroup>
-                                </Stack>
-                            </Paper>
-                        </Popover>
+                            {validationError}
+                        </Alert>
+                    )}
 
-                        {/* Validation Error */}
-                        {validationError && (
-                            <Alert
-                                severity="error"
-                                sx={{ mt: 2 }}
-                                onClose={() => {
-                                    // Clear invalid numbers from the board
-                                    const newUserInput = userInput.map(r => [...r]);
-                                    invalidCells.forEach(key => {
-                                        const [r, c] = key.split('-').map(Number);
-                                        if (puzzle[r][c] === 0) {
-                                            // Only clear user-entered cells
-                                            newUserInput[r][c] = 0;
-                                        }
-                                    });
-                                    setUserInput(newUserInput);
+                    {gameGivenUp && (
+                        <Alert severity="info" sx={{ mt: 3 }}>
+                            You gave up! The solution is now displayed. Click "New Game" to try again.
+                        </Alert>
+                    )}
 
-                                    setValidationError(null);
-                                    setInvalidCells(new Set());
-                                    setSelectedCell(null);
-                                    setPopoverAnchor(null);
-                                }}
-                            >
-                                {validationError}
-                            </Alert>
-                        )}
+                    {isSolved() && !gameGivenUp && (
+                        <Alert severity="success" sx={{ mt: 3 }}>
+                            Congratulations! You solved the puzzle! 🎉
+                        </Alert>
+                    )}
+                </>
+            ) : (
+                <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant="h6" gutterBottom>
+                        No puzzle loaded
+                    </Typography>
+                    <Typography color="text.secondary" paragraph>
+                        Click "New Game" to start playing
+                    </Typography>
+                    <Button variant="contained" onClick={() => generateNewGame(difficulty)} startIcon={<RefreshIcon />}>
+                        Generate Puzzle
+                    </Button>
+                </Paper>
+            )}
 
-                        {gameGivenUp && (
-                            <Alert severity="info" sx={{ mt: 3 }}>
-                                You gave up! The solution is now displayed. Click "New Game" to try again.
-                            </Alert>
-                        )}
+            {/* Loading Dialog */}
+            <Dialog open={loading} maxWidth="xs" fullWidth disableEscapeKeyDown>
+                <DialogContent sx={{ textAlign: 'center', py: 4 }}>
+                    <Box sx={{ mb: 2 }}>
+                        <Box
+                            sx={{
+                                width: 60,
+                                height: 60,
+                                margin: '0 auto',
+                                border: '4px solid',
+                                borderColor: 'primary.main',
+                                borderTopColor: 'transparent',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                '@keyframes spin': {
+                                    '0%': { transform: 'rotate(0deg)' },
+                                    '100%': { transform: 'rotate(360deg)' },
+                                },
+                            }}
+                        />
+                    </Box>
+                    <Typography variant="h6" gutterBottom>
+                        Generating Puzzle...
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Please wait while we create your new Sudoku game
+                    </Typography>
+                </DialogContent>
+            </Dialog>
 
-                        {isSolved() && !gameGivenUp && (
-                            <Alert severity="success" sx={{ mt: 3 }}>
-                                Congratulations! You solved the puzzle! 🎉
-                            </Alert>
-                        )}
-                    </>
-                ) : (
-                    <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h6" gutterBottom>
-                            No puzzle loaded
+            {/* Save Game Dialog */}
+            <Dialog open={saveDialogOpen} onClose={() => setSaveDialogOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Save Game Progress</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        label="Save Name"
+                        placeholder="Enter a name for this save"
+                        value={saveName}
+                        onChange={e => setSaveName(e.target.value)}
+                        sx={{ mt: 1 }}
+                        required
+                        onKeyPress={e => {
+                            if (e.key === 'Enter' && saveName.trim()) {
+                                handleSaveGame();
+                            }
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSaveGame} variant="contained" disabled={!saveName.trim()}>
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Load Game Dialog */}
+            <Dialog open={loadDialogOpen} onClose={() => setLoadDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Load Saved Game</DialogTitle>
+                <DialogContent>
+                    {savedGames.length === 0 ? (
+                        <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                            No saved games available
                         </Typography>
-                        <Typography color="text.secondary" paragraph>
-                            Click "New Game" to start playing
-                        </Typography>
-                        <Button variant="contained" onClick={() => generateNewGame(difficulty)} startIcon={<RefreshIcon />}>
-                            Generate Puzzle
-                        </Button>
-                    </Paper>
-                )}
-            </Container>
+                    ) : (
+                        <List>
+                            {savedGames.map(save => (
+                                <ListItem
+                                    key={save.id}
+                                    sx={{
+                                        border: 1,
+                                        borderColor: 'divider',
+                                        borderRadius: 1,
+                                        mb: 1,
+                                    }}
+                                >
+                                    <ListItemText primary={save.name} secondary={new Date(save.timestamp).toLocaleString()} />
+                                    <ListItemSecondaryAction>
+                                        <IconButton edge="end" onClick={() => handleLoadGame(save)} sx={{ mr: 1 }}>
+                                            <LoadIcon />
+                                        </IconButton>
+                                        {save.id !== 'starting_state' && (
+                                            <IconButton edge="end" onClick={() => handleDeleteSave(save.id)} color="error">
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        )}
+                                    </ListItemSecondaryAction>
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setLoadDialogOpen(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* New Game Dialog */}
             <Dialog open={newGameDialogOpen} onClose={() => setNewGameDialogOpen(false)}>
@@ -697,6 +902,6 @@ export const Sudoku = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Box>
+        </ProjectLayout>
     );
 };
