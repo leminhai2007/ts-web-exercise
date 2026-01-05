@@ -107,6 +107,13 @@ This guide covers how to deploy your application to the internet for free.
 2. Click "Environment Variables"
 3. Add any needed variables
 
+**Required Environment Variables:**
+
+- `YOUDOSUDOKU_API_KEY` - Your YoudoSudoku API key (required for Sudoku game functionality)
+    - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+    - Add: `YOUDOSUDOKU_API_KEY` with your API key value
+    - Apply to: Production, Preview, and Development environments
+
 #### Automatic Deployments
 
 - **Production**: Every push to `main` branch → production site updates

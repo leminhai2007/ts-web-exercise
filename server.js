@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
@@ -9,13 +10,36 @@ app.use(express.json());
 app.post('/api/youdosudoku', async (req, res) => {
     try {
         console.log('Proxying request to You Do Sudoku API...');
-        console.log('Request body:', req.body);
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        console.log('API Key present:', !!process.env.YOUDOSUDOKU_API_KEY);
+        console.log('API Key (first 10 chars):', process.env.YOUDOSUDOKU_API_KEY?.substring(0, 10) + '...');
 
-        const response = await fetch('https://www.youdosudoku.com/api/', {
+        const requestPayload = {
+            url: 'https://www.youdosudoku.com/api/',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'x-api-key': process.env.YOUDOSUDOKU_API_KEY || '',
             },
+            body: req.body,
+        };
+        console.log(
+            'Full request to YoudoSudoku:',
+            JSON.stringify(
+                {
+                    url: requestPayload.url,
+                    method: requestPayload.method,
+                    headers: { ...requestPayload.headers, 'x-api-key': requestPayload.headers['x-api-key'].substring(0, 10) + '...' },
+                    body: requestPayload.body,
+                },
+                null,
+                2
+            )
+        );
+
+        const response = await fetch(requestPayload.url, {
+            method: requestPayload.method,
+            headers: requestPayload.headers,
             body: JSON.stringify(req.body),
         });
 

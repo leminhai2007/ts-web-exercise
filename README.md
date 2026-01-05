@@ -25,6 +25,22 @@ A web application built with React, TypeScript, and Vite that hosts multiple too
 yarn install
 ```
 
+### Environment Setup
+
+1. Copy the example environment file:
+
+    ```bash
+    cp .env.example .env.local
+    ```
+
+2. Edit `.env.local` and add your API keys:
+
+    ```
+    YOUDOSUDOKU_API_KEY=your_actual_api_key_here
+    ```
+
+    **Note**: The `.env.local` file is gitignored and should never be committed to version control.
+
 ### Development
 
 Start the development server:
