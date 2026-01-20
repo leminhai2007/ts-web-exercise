@@ -15,6 +15,8 @@
  * - Score System: Points for line clears and hard drops
  * - Next Piece Preview: Shows upcoming tetromino
  * - Pause Functionality: Game can be paused and resumed
+ * - Auto-save: Game progress automatically saved to localStorage
+ * - Auto-restore: Game state restored on page refresh/revisit
  * - Mobile Overlay UI: All controls overlayed on game board
  * - Material-UI: Modern, accessible components
  *
@@ -320,9 +322,20 @@ import { ProjectLayout } from './ProjectLayout';
 
 type Board = number[][];
 
+interface GameState {
+    board: Board;
+    score: number;
+    level: number;
+    lines: number;
+    gameOver: boolean;
+    isPaused: boolean;
+    nextPiece: { shape: number[][]; color: string } | null;
+}
+
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const CELL_SIZE = 30;
+const STORAGE_KEY = 'tetris_state';
 
 // Tetromino shapes
 const TETROMINOS = {
@@ -376,6 +389,34 @@ const TETROMINOS = {
 
 type TetrominoType = keyof typeof TETROMINOS;
 
+const loadGameState = (): GameState | null => {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (error) {
+        console.error('Failed to load game state:', error);
+    }
+    return null;
+};
+
+const saveGameState = (state: GameState): void => {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error('Failed to save game state:', error);
+    }
+};
+
+const clearGameState = (): void => {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+        console.error('Failed to clear game state:', error);
+    }
+};
+
 interface Piece {
     shape: number[][];
     color: string;
@@ -404,14 +445,32 @@ export const Tetris = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    const [board, setBoard] = useState<Board>(createEmptyBoard());
+    // Initialize state from localStorage or create new game
+    const initializeGameState = (): GameState => {
+        const savedState = loadGameState();
+        if (savedState) {
+            return savedState;
+        }
+        return {
+            board: createEmptyBoard(),
+            score: 0,
+            level: 1,
+            lines: 0,
+            gameOver: false,
+            isPaused: false,
+            nextPiece: null,
+        };
+    };
+
+    const initialState = initializeGameState();
+    const [board, setBoard] = useState<Board>(initialState.board);
     const [currentPiece, setCurrentPiece] = useState<Piece | null>(null);
-    const [nextPiece, setNextPiece] = useState<{ shape: number[][]; color: string } | null>(null);
-    const [score, setScore] = useState(0);
-    const [level, setLevel] = useState(1);
-    const [lines, setLines] = useState(0);
-    const [gameOver, setGameOver] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
+    const [nextPiece, setNextPiece] = useState<{ shape: number[][]; color: string } | null>(initialState.nextPiece);
+    const [score, setScore] = useState(initialState.score);
+    const [level, setLevel] = useState(initialState.level);
+    const [lines, setLines] = useState(initialState.lines);
+    const [gameOver, setGameOver] = useState(initialState.gameOver);
+    const [isPaused, setIsPaused] = useState(initialState.isPaused);
     const gameLoopRef = useRef<number | null>(null);
 
     const checkCollision = useCallback(
@@ -563,6 +622,7 @@ export const Tetris = () => {
     }, [currentPiece, gameOver, isPaused, checkCollision, mergePieceToBoard, clearLines, spawnNewPiece, level, lines]);
 
     const startNewGame = () => {
+        clearGameState();
         const newBoard = createEmptyBoard();
         const firstNextPiece = getRandomTetromino();
         const firstPiece: Piece = {
@@ -587,6 +647,20 @@ export const Tetris = () => {
             setIsPaused(prev => !prev);
         }
     }, [gameOver]);
+
+    // Save game state to localStorage whenever it changes
+    useEffect(() => {
+        const gameState: GameState = {
+            board,
+            score,
+            level,
+            lines,
+            gameOver,
+            isPaused,
+            nextPiece,
+        };
+        saveGameState(gameState);
+    }, [board, score, level, lines, gameOver, isPaused, nextPiece]);
 
     // Keyboard controls
     useEffect(() => {
