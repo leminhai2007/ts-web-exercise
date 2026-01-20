@@ -1,3 +1,81 @@
+/**
+ * HomePage Component
+ *
+ * The landing page of the application that displays all available projects/games with
+ * search and filtering capabilities.
+ *
+ * OVERVIEW:
+ * Provides a user-friendly interface to browse and navigate to different projects. Features
+ * include project search, category filtering, PWA installation support, and online/offline status.
+ *
+ * COMPONENT ARCHITECTURE:
+ * Uses React hooks for state management:
+ * - searchTerm: Stores the user's search input
+ * - selectedCategory: Stores the currently selected category filter
+ * - deferredPrompt: PWA installation prompt event
+ * - isInstallable: Whether PWA can be installed
+ * - isOnline: Online/offline status
+ *
+ * COMPUTED VALUES (useMemo):
+ * 1. allCategories: Extracts all unique categories from projects list
+ *    - Creates a Set to handle uniqueness automatically
+ *    - Converts to array and sorts alphabetically
+ *    - Memoized with empty dependency array (only computed once)
+ *
+ * 2. filteredProjects: Filters projects based on search term and selected category
+ *    - Search Match: Project name or description contains search term (case-insensitive)
+ *    - Category Match: Selected category is 'all' or project has the selected category
+ *    - Re-computes when searchTerm or selectedCategory changes
+ *
+ * UI STRUCTURE:
+ * 1. AppBar: Top navigation with app title, online status, and install button
+ * 2. Search Section: Search input and category filter buttons
+ * 3. Projects Grid: Card layout showing filtered projects
+ *
+ * PERFORMANCE OPTIMIZATIONS:
+ * - useMemo for categories: Only computed once on mount
+ * - useMemo for filtering: Only happens when search term or category changes
+ * - Avoids re-filtering on unrelated state updates or re-renders
+ *
+ * USER INTERACTIONS:
+ * - Type in search box: Filters projects by name/description
+ * - Click category button: Filters projects by category
+ * - Click "All" button: Shows all projects
+ * - Click project card: Navigates to project page
+ * - Click Install button: Triggers PWA installation
+ *
+ * DATA FLOW:
+ * projects (from data/projects.ts)
+ *   ↓
+ * allCategories (extract unique categories)
+ *   ↓
+ * User inputs (searchTerm, selectedCategory)
+ *   ↓
+ * filteredProjects (apply filters)
+ *   ↓
+ * Render project cards
+ *
+ * PWA FEATURES:
+ * - Detects if app can be installed
+ * - Shows install button when available
+ * - Handles beforeinstallprompt event
+ * - Shows online/offline status
+ * - Displays cloud icon with status indicator
+ *
+ * ADDING NEW PROJECTS:
+ * To add a new project to HomePage:
+ * 1. Add project to src/data/projects.ts with id, name, description, categories, and path
+ * 2. HomePage automatically displays it, includes categories in filters, and makes it searchable
+ * No changes to HomePage component needed!
+ *
+ * ACCESSIBILITY CONSIDERATIONS:
+ * - Semantic HTML (AppBar, TextField, Chip, Card)
+ * - Descriptive placeholder text in search input
+ * - Clear button labels
+ * - Keyboard navigation supported (tab through elements)
+ * - Material-UI components with built-in accessibility
+ */
+
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Box, Typography, TextField, Chip, Card, CardContent, CardActionArea, AppBar, Toolbar, Button, Stack } from '@mui/material';

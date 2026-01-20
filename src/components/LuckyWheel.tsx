@@ -1,3 +1,157 @@
+/**
+ * LuckyWheel Component
+ *
+ * An interactive decision-making tool with customizable spinning wheels for making random choices.
+ *
+ * OVERVIEW:
+ * Built with Material UI following the project's design system. Users can spin the wheel, customize
+ * items, save favorite wheels, and share them via URL.
+ *
+ * KEY FEATURES:
+ * 1. Interactive Wheel Spinning
+ *    - Click directly on wheel to spin (no separate button)
+ *    - Smooth animated rotation with realistic physics
+ *    - Visual pointer at top indicates winning selection
+ *    - Result displayed in Dialog with trophy icon
+ *    - Automatic deceleration with cubic easing
+ *    - 4-second animation with 5-10 full rotations
+ *
+ * 2. Material UI Design
+ *    - Consistent with other project components
+ *    - AppBar with white background, indigo icons, back button
+ *    - Responsive layout for mobile and desktop
+ *    - Paper component with elevation for wheel container
+ *    - Icon-only buttons on mobile, icon+text on desktop
+ *    - Snackbar notifications for user feedback
+ *
+ * 3. Customizable Items
+ *    - Default wheel: "Yes" and "No" options
+ *    - Edit button for easy access
+ *    - Dialog for item management
+ *    - One item per line in multiline TextField
+ *    - Automatic whitespace trimming
+ *    - Max 50 chars per item with truncation
+ *    - Displays min 10 chars on wheel with ellipsis
+ *    - Automatic color assignment from 10-color palette
+ *    - Requires at least 1 item
+ *
+ * 4. Save Wheels
+ *    - Save current configuration to localStorage
+ *    - Required wheel name field with validation
+ *    - View all saved wheels in Dialog List
+ *    - Load/delete saved wheels
+ *    - Displays creation date and item count
+ *
+ * 5. Share Wheels
+ *    - Generate shareable links with URL parameters
+ *    - Automatic clipboard copy with success notification
+ *    - Clean URLs after loading (params removed)
+ *    - Recipients can spin, edit, and save shared wheels
+ *
+ * 6. Responsive Design
+ *    - Canvas-based wheel rendering
+ *    - Touch-friendly controls
+ *    - Mobile: Icon-only buttons
+ *    - Desktop: Icon+text buttons
+ *    - Adaptive wheel size (300px mobile, 450px desktop)
+ *
+ * CORE FUNCTIONS:
+ *
+ * drawWheel(): Canvas rendering engine
+ * - Validates canvas and context
+ * - Calculates dimensions and centers wheel
+ * - Prepares canvas for drawing (clear, save, translate, rotate)
+ * - Calculates slice geometry (divides circle by item count)
+ * - Draws colored slices with borders
+ * - Renders text with smart truncation algorithm:
+ *   - Measures pixel width of text
+ *   - Ensures minimum 10 characters displayed
+ *   - Trims character by character until fits
+ *   - Adds ellipsis if truncated
+ * - Draws center circle (hub)
+ * - Draws pointer triangle at top
+ *
+ * spinWheel(): Animation controller
+ * - Guard conditions prevent multiple spins
+ * - Random rotation: 5-10 full rotations + random 0-360°
+ * - 4-second duration with cubic ease-out easing
+ * - Frame-by-frame animation loop using requestAnimationFrame
+ * - Determines winner when animation completes
+ *
+ * determineWinner(): Winner calculation algorithm
+ * - Calculates slice size (360° / item count)
+ * - Normalizes rotation to 0-360 range
+ * - Calculates angle at pointer position (270° - rotation)
+ * - Finds winning slice index
+ * - Displays result in Dialog
+ *
+ * handleEdit/handleSaveEdit(): Item management
+ * - Opens edit dialog with current items
+ * - Parses and cleans input (split, trim, filter)
+ * - Validates at least one item exists
+ * - Creates WheelItem objects with colors
+ * - Truncates text to 50 characters
+ * - Updates state and triggers redraw
+ *
+ * handleSaveWheel/handleLoadWheel(): Persistence
+ * - Validates wheel name
+ * - Creates SavedWheel object with timestamp
+ * - Updates localStorage
+ * - Loads saved wheels on mount
+ * - Reconstructs WheelItems with colors
+ *
+ * handleShareWheel(): URL sharing
+ * - Joins item texts with pipe separator
+ * - Builds URL with query parameter
+ * - URL encodes special characters
+ * - Copies to clipboard
+ * - Shows success notification
+ *
+ * checkForSharedWheel(): Loading from URL
+ * - Parses URL parameters on mount
+ * - Decodes and splits items
+ * - Validates and creates WheelItems
+ * - Cleans URL after loading
+ * - Error handling for malformed URLs
+ *
+ * TYPES:
+ * - WheelItem: { id, text, color }
+ * - SavedWheel: { id, name, items[], createdAt }
+ *
+ * COLOR PALETTE:
+ * 10 vibrant colors cycle through items:
+ * Red, Teal, Blue, Coral, Mint, Yellow, Purple, Sky Blue, Orange, Green
+ *
+ * TECHNICAL IMPLEMENTATION:
+ * - HTML5 Canvas API with 2D context
+ * - Canvas size: 300x300px (mobile) or 450x450px (desktop)
+ * - Polar coordinates for pie segments
+ * - Text truncation with pixel-width measurement
+ * - requestAnimationFrame for smooth 60fps animation
+ * - localStorage for saving wheels
+ * - URL parameters with pipe-separated values
+ * - Clipboard API for sharing
+ *
+ * BROWSER COMPATIBILITY:
+ * Requires:
+ * - HTML5 Canvas API
+ * - localStorage API
+ * - ES6+ features
+ * - URL/URLSearchParams API
+ * - Clipboard API (navigator.clipboard)
+ * - requestAnimationFrame
+ * - React 18+
+ * - Material UI v5+
+ *
+ * ACCESSIBILITY:
+ * - Keyboard navigation in dialogs (Escape to close, Enter to submit)
+ * - Visual feedback: hover states, pointer cursor on wheel
+ * - High contrast text (white on vibrant colors with shadow)
+ * - Touch targets: min 48px for mobile
+ * - Screen readers: semantic HTML with ARIA from Material UI
+ * - Focus management: auto-focus on TextField when dialogs open
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Box,

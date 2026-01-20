@@ -1,3 +1,356 @@
+/**
+ * Sudoku Component
+ *
+ * A fully-featured implementation of the classic Sudoku puzzle game with API integration.
+ *
+ * OVERVIEW:
+ * Integrates with the You Do Sudoku API (https://www.youdosudoku.com/) to generate puzzles.
+ * Provides complete gaming experience with validation, note-taking, difficulty levels, and
+ * save/load functionality.
+ *
+ * KEY FEATURES:
+ * 1. Puzzle Generation: Three difficulty levels (Easy, Medium, Hard) via API
+ * 2. Number Entry Mode: Click cells to enter numbers with validation
+ * 3. Note Mode: Toggle to take notes in cells (up to 9 notes per cell)
+ * 4. Validation System: Real-time rule checking with conflict highlighting
+ * 5. Save/Load: Save game progress including notes and cell values
+ * 6. Give Up: Display solution when stuck
+ * 7. Reset: Restart current puzzle without generating new one
+ * 8. Remaining Counter: Badge shows how many times each number can still be placed
+ *
+ * RECENT UPDATES:
+ * - Layout uses ProjectLayout component for consistency
+ * - Difficulty chip moved from AppBar to main page
+ * - Note Mode toggle on same line as difficulty chip
+ * - Button reorganization: New Game, Give Up (row 1); Reset, Save, Load (row 2)
+ * - New Game icon changed to AddCircleOutline
+ * - Loading dialog with spinning animation
+ * - All controls disabled during puzzle generation
+ * - Save/Load with custom names and timestamps
+ * - Starting State auto-created and protected
+ * - Saves cleared on completion/give up/new game
+ * - Notes properly saved and restored (Set<number> ↔ arrays conversion)
+ * - Saved games persist in localStorage (survive browser reload)
+ * - Auto-generated default save names with timestamp format
+ *
+ * FILE STRUCTURE:
+ * 1. src/api/sudokuApi.ts: API communication layer
+ *    - generateSudoku(): POST request to You Do Sudoku API
+ *    - parsePuzzle(): Converts 81-char string to 9x9 array
+ *    - stringifyPuzzle(): Converts 9x9 array to string
+ *
+ * 2. src/components/Sudoku.tsx: Main game component
+ *    - State management for puzzle, userInput, solution, notes
+ *    - Game logic: validation, note-taking, save/load
+ *    - UI controls and dialogs
+ *
+ * 3. src/components/SudokuBoard.tsx: Visual grid component
+ *    - 9x9 grid rendering with borders
+ *    - Cell styling (colors, backgrounds, borders)
+ *    - Notes display in 3x3 mini-grid
+ *    - Click handlers for cell selection
+ *
+ * STATE MANAGEMENT:
+ * Game State:
+ * - puzzle: Original puzzle from API (immutable during gameplay)
+ * - userInput: Current state with user's entries
+ * - solution: Correct solution (hidden until "Give Up")
+ * - difficulty: Selected difficulty level
+ * - notes: Cell-level notes (Set<number> for each cell)
+ * - gameGivenUp: Boolean flag for surrender state
+ * - invalidCells: Set of cell keys with validation errors
+ *
+ * UI State:
+ * - noteMode: Toggle between number entry and note-taking
+ * - selectedCell: Currently active cell for input
+ * - popoverAnchor: Anchor element for number input popover
+ * - loading: API request loading state
+ * - error: General error messages
+ * - validationError: Rule violation messages
+ * - confirmDialogOpen: "Give Up" confirmation
+ * - difficultyDialogOpen: New game difficulty selection
+ *
+ * CORE FEATURES:
+ *
+ * 1. Number Entry Mode
+ * - Click cell to open number input popover
+ * - Popover positioned below and right of cell (cell visible)
+ * - Click number (1-9) to enter value
+ * - Validates against Sudoku rules before entry
+ * - Invalid cells highlighted in red
+ * - Shows error alert if move violates rules
+ * - Input blocked when validation errors exist
+ * - Automatically clears notes when number entered
+ * - Popover closes after entry in number mode
+ *
+ * 2. Note Mode
+ * - Toggle between Number and Note modes
+ * - BorderColor icon for number mode, EditNote icon for note mode
+ * - Click numbers to toggle notes on/off
+ * - Popover stays open for multiple selections
+ * - Up to 9 notes per cell
+ * - Notes in 3x3 mini-grid within cell
+ * - Enhanced mobile visibility: 0.65rem (mobile), 0.75rem (desktop)
+ * - Notes cleared when real number entered
+ *
+ * 3. Validation System
+ * isValidMove() checks three Sudoku rules:
+ * - No duplicates in row
+ * - No duplicates in column
+ * - No duplicates in 3x3 box
+ * Returns: { valid: boolean, conflicts: string[] }
+ * All conflicting cells added to invalidCells Set
+ * Invalid cells receive red background and text
+ * User must dismiss alert to clear invalid cells
+ * Input blocked while invalid cells exist
+ *
+ * 4. Give Up (Suicide) Feature
+ * - Confirmation dialog prevents accidents
+ * - Sets gameGivenUp flag
+ * - Displays solution by replacing userInput with solution in render
+ * - Disables all input controls
+ * - Preserves user's attempt (doesn't modify userInput state)
+ * - Only "New Game" button remains active
+ *
+ * 5. Difficulty Selection
+ * - Current difficulty displayed as Chip
+ * - "New Game" opens dialog with three options
+ * - Dialog prevents accidental changes during gameplay
+ * - Three buttons: Easy, Medium, Hard with distinct colors
+ * - Selected difficulty starts new game immediately
+ * - Difficulty saved in localStorage
+ *
+ * 6. Game Completion Detection
+ * isSolved(): Checks if every cell matches solution exactly
+ *
+ * 7. Remaining Number Counter
+ * getRemainingNumbers(): Calculates how many times each number (1-9) can still be placed
+ * - Each number appears exactly 9 times in complete puzzle
+ * - Badge shows remaining slots: 9 - current count
+ * - When remaining reaches 0, button disabled in number mode
+ * - Updates real-time as numbers entered/cleared
+ * - Helps identify which numbers still need placement
+ *
+ * 8. Reset Game Feature
+ * handleResetGame(): Restarts current puzzle without generating new one
+ * - Restores board to original puzzle state
+ * - Clears all notes and validation errors
+ * - Resets UI state (selected cell, popover, note mode)
+ * - Keeps same puzzle and solution (doesn't call API)
+ * - Useful when too many mistakes made
+ * - Disabled when game over or loading
+ *
+ * 9. Save/Load Feature
+ * SaveGame interface: { id, name, userInput, notes: { [key: string]: number[] }, timestamp }
+ *
+ * Save Dialog:
+ * - Save button opens dialog with auto-generated default name
+ * - Default name format: "Save YYYY-MM-DD HH:MM:SS" (e.g., "Save 2026-01-20 14:35:42")
+ * - User can accept default or customize the name
+ * - Press Enter or click Save to confirm
+ *
+ * Load Dialog:
+ * - Load button shows list of all saved games
+ * - Displays save name and timestamp for each
+ * - Load icon button: Restores that saved state
+ * - Delete icon button: Removes the save (except Starting State)
+ *
+ * Starting State:
+ * - Auto-created when new game starts
+ * - Always available as fallback
+ * - Protected from deletion (id: 'starting_state')
+ *
+ * Persistence:
+ * - Saved games stored in localStorage key: 'sudoku_saved_games'
+ * - Main game state stored in localStorage key: 'sudoku_state'
+ * - Both survive browser reload/close
+ * - Loaded automatically on component mount
+ * - Auto-saved whenever changes occur
+ *
+ * Data Handling:
+ * - Notes properly saved: Set<number> → arrays for JSON serialization
+ * - Notes properly loaded: arrays → Set<number> for component use
+ * - Includes both user input numbers AND notes in saved state
+ * - Deep cloning ensures state isolation
+ *
+ * Lifecycle:
+ * - Saves persist across sessions
+ * - Cleared only when: puzzle completed, user gives up, or new game started
+ * - Saved games list resets to [Starting State] on new game
+ *
+ * LOCALSTORAGE:
+ * Two storage keys used:
+ *
+ * 1. 'sudoku_state' - Main game state
+ *    Saved Data: { puzzle, userInput, solution, difficulty, notes, gameGivenUp }
+ *    - Load: On mount, checks localStorage
+ *    - Save: Triggered by useEffect on state changes
+ *    - Clear: When generating new game
+ *    - Notes Serialization: Sets converted to arrays for JSON
+ *
+ * 2. 'sudoku_saved_games' - Saved game slots
+ *    Saved Data: Array of SaveGame objects
+ *    - Each SaveGame: { id, name, userInput, notes (as arrays), timestamp }
+ *    - Load: On mount, restores saved games list
+ *    - Save: Triggered by useEffect when savedGames changes
+ *    - Persists across browser sessions
+ *    - User can have multiple save slots per puzzle
+ *
+ * UI CONTROLS:
+ * Top Bar:
+ * - Back button to home
+ * - Sudoku icon (hidden on mobile)
+ * - Title: "Sudoku Game"
+ * - Difficulty chip with current level
+ *
+ * Control Panel:
+ * - Action buttons grouped horizontally:
+ *   - New Game (opens difficulty dialog)
+ *   - Reset (restarts current puzzle)
+ *   - Give Up (disabled when game over)
+ * - Mobile: Icon-only on xs, icon+text on sm+
+ * - Button colors: Primary (New Game), Warning (Reset), Error (Give Up)
+ * - Mode toggle (Number/Note) with icons
+ *
+ * Number Input Popover:
+ * - Opens on cell click
+ * - Positioned below and right of cell
+ * - Mode toggle at top
+ * - 3x3 grid with numbers 1-9
+ * - Badge showing remaining count:
+ *   - Blue (>3 remaining)
+ *   - Orange (1-3 remaining)
+ *   - Red (0 remaining)
+ *   - 20px × 20px with 0.75rem font
+ *   - Position: 3px from top-right corner
+ *   - Numbers with 0 remaining disabled in number mode
+ *   - Updates automatically
+ * - Button sizes: 1.5rem font
+ * - Clear and Close buttons at bottom
+ * - Fixed width (280px) prevents layout shifts
+ * - Auto-closes after entry in number mode
+ * - Stays open in note mode
+ * - Disabled when game over or validation errors
+ * - Indigo primary color scheme
+ *
+ * Alerts:
+ * - Error: API failures
+ * - Info: Solution displayed
+ * - Success: Puzzle solved
+ * - Warning: Validation errors (with Clear button)
+ * - Dismissing validation alert clears invalid cells
+ *
+ * SUDOKU BOARD COMPONENT:
+ * Props: puzzle, userInput, notes, selectedCell, onCellClick, gameGivenUp, invalidCells
+ *
+ * Cell Styling:
+ * Background Colors:
+ * - Invalid: #fee2e2 (light red) - priority
+ * - Selected: #ddd6fe (light indigo)
+ * - Same row/col/box: #f3f4f6 (light gray)
+ * - Default: #ffffff (white)
+ *
+ * Text Colors:
+ * - Invalid: #dc2626 (red) - priority
+ * - Pre-filled: #1f2937 (dark gray, bold)
+ * - User input: #6366f1 (primary indigo)
+ *
+ * Border System:
+ * - Thick borders every 3 cells (box boundaries)
+ * - 2px solid indigo for box edges
+ * - 1px solid gray for cell edges
+ *
+ * Cell Content:
+ * 1. Number Display: Large, centered font
+ * 2. Notes Display: 3x3 mini-grid with small numbers
+ * 3. Empty: No content
+ *
+ * Responsive Design:
+ * Mobile (xs):
+ * - Padding: 1, Font: 1.25rem (numbers), 0.65rem (notes)
+ * - Note grid: 0.1 gap, 0.25 padding
+ * - Full width grid
+ * - Icon-only control buttons
+ * - Horizontal button grouping
+ * - Compact padding (1.5)
+ *
+ * Desktop (sm+):
+ * - Padding: 2, Font: 1.5rem (numbers), 0.75rem (notes)
+ * - Note grid: 0.25 gap, 0.5 padding
+ * - Max width: 500px
+ * - Icon+text control buttons
+ * - Normal padding (2)
+ *
+ * Grid Layout:
+ * - CSS Grid with 9 columns
+ * - AspectRatio: 1 (perfect square)
+ * - Responsive sizing maintains proportions
+ * - Touch-friendly tap targets on mobile
+ *
+ * Interaction States:
+ * Hover:
+ * - Pre-filled: No change
+ * - Empty (not given up): Light indigo highlight
+ * - Cursor: pointer only for editable cells
+ *
+ * Click:
+ * - Prevents clicks on pre-filled cells
+ * - Prevents clicks when game over
+ * - Triggers parent's onCellClick callback
+ *
+ * COLOR SCHEME:
+ * Follows Material-UI theme:
+ * Primary: #6366f1 (Indigo 500)
+ * Background: #f8fafc (Slate 50), #ffffff (White)
+ * Grey tones: #f3f4f6, #e5e7eb
+ * Success: Green, Error: Red, Info: Blue
+ *
+ * CORS AND PROXY:
+ * Development (Express + Vite):
+ * - server.js: Express proxy on port 3000
+ * - vite.config.ts: Proxy /api to localhost:3000
+ * - Frontend makes request to /api/youdosudoku
+ * - Vite forwards to Express
+ * - Express makes request to You Do Sudoku API
+ * - No CORS issues (server-to-server)
+ *
+ * Production (Vercel):
+ * - api/youdosudoku.ts: Serverless function
+ * - vercel.json: Routes /api/youdosudoku to function
+ * - Function adds CORS headers
+ * - Function makes request to external API
+ * - Frontend receives data without CORS errors
+ *
+ * API Client (src/api/sudokuApi.ts):
+ * - Uses same endpoint in both environments: /api/youdosudoku
+ * - No environment-specific code needed
+ * - Development: Vite proxy → Express → API
+ * - Production: Vercel routes → serverless → API
+ *
+ * TECHNICAL DECISIONS:
+ * - Sets for Notes: Fast O(1) add/remove, natural toggle, easy deduplication
+ * - Separate puzzle/userInput: Preserves original, enables "Give Up", allows solution display
+ * - String Format from API: Smaller payload, easier storage, standard notation
+ * - Local Storage: Persists across sessions, no backend needed, auto state recovery
+ *
+ * ACCESSIBILITY:
+ * - Keyboard navigation supported (click-based, could enhance)
+ * - High contrast text colors
+ * - Large tap targets on mobile
+ * - Clear visual feedback
+ * - Descriptive button labels
+ * - Alert messages for screen readers
+ * - Material-UI built-in accessibility features
+ *
+ * BROWSER COMPATIBILITY:
+ * Requires:
+ * - Modern browsers with ES6+ support
+ * - LocalStorage API
+ * - Fetch API
+ * - Responsive design: Mobile and desktop
+ * - PWA compatible
+ */
+
 import { useState, useEffect } from 'react';
 import {
     Box,

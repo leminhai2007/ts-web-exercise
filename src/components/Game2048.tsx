@@ -1,3 +1,87 @@
+/**
+ * Game2048 Component
+ *
+ * A fully-featured implementation of the classic 2048 sliding puzzle game.
+ *
+ * OVERVIEW:
+ * Players combine numbered tiles to reach the 2048 tile. The game features keyboard controls,
+ * touch gestures, score tracking, win/lose detection, auto-save functionality, and Material-UI
+ * components for a modern interface.
+ *
+ * KEY FEATURES:
+ * - Auto-save: Game progress automatically saved to localStorage
+ * - Auto-restore: Game state restored on page refresh/revisit
+ * - Responsive Design: Optimized for mobile and desktop
+ * - Touch Support: Swipe gestures for mobile devices
+ * - Keyboard Controls: Arrow keys for desktop
+ * - Material-UI: Modern, accessible UI components
+ * - Theme Integration: Matches website color scheme
+ *
+ * GAME RULES:
+ * 1. Use arrow keys (desktop) or swipe (mobile) to slide all tiles in one direction
+ * 2. When two tiles with the same number touch, they merge into one tile with double the value
+ * 3. After each move, a new tile (2 or 4) appears in a random empty spot
+ * 4. Goal: Create a tile with the value 2048
+ * 5. Game Over: No more moves available (board full and no adjacent matching tiles)
+ *
+ * TYPE DEFINITIONS:
+ * - Board: number[][] - A 2D array representing the game board (0 = empty cell)
+ * - GameState: { board, score, gameOver, won } - Complete game state for localStorage persistence
+ *
+ * CONSTANTS:
+ * - GRID_SIZE: 4 - Defines a 4x4 game board (16 tiles total)
+ * - STORAGE_KEY: 'game2048_state' - localStorage key for saving/loading game state
+ *
+ * CORE GAME LOGIC:
+ * - initializeBoard(): Creates a new game board with two random starting tiles
+ * - addRandomTile(): Adds a new tile (2 or 4) to a random empty position
+ * - moveLeft(): Core mechanic - slides and merges tiles to the left
+ * - rotateBoard(): Rotates the board 90 degrees clockwise
+ * - move(): Handles movement in any direction by using rotation
+ * - isGameOver(): Checks if the game is over (no valid moves left)
+ *
+ * LOCALSTORAGE FUNCTIONS:
+ * - loadGameState(): Loads saved game state from localStorage
+ * - saveGameState(): Saves current game state to localStorage
+ * - clearGameState(): Removes saved game state from localStorage
+ *
+ * COMPONENT STATE:
+ * - board: Current game board state
+ * - score: Current score (sum of merged tiles)
+ * - gameOver: Whether game is over
+ * - won: Whether player reached 2048
+ * - touchStart: Touch gesture start position
+ *
+ * UI STRUCTURE:
+ * 1. ProjectLayout: Consistent layout with back button and title
+ * 2. Score and Controls: Score display and New Game button
+ * 3. Game Board: CSS Grid layout with dynamic tile colors
+ * 4. Win Dialog: Shows when 2048 is reached
+ * 5. Game Over Dialog: Shows when no moves left
+ * 6. Instructions: Keyboard controls and game instructions
+ *
+ * COLOR SCHEME:
+ * Uses theme-based indigo/blue palette:
+ * - Low values (2, 4): Light indigo with dark text
+ * - Mid values (8-512): Progressive indigo gradient
+ * - High values (1024): Very dark indigo
+ * - 2048: Special pink color (secondary theme color)
+ *
+ * PERFORMANCE CONSIDERATIONS:
+ * - useCallback prevents handleMove recreation on every render
+ * - Board copying ensures immutability (no mutations)
+ * - Event cleanup removes keyboard listener on unmount
+ * - Conditional rendering for dialogs only when needed
+ * - localStorage throttling via useEffect
+ * - Error handling catches localStorage failures gracefully
+ *
+ * MOBILE OPTIMIZATIONS:
+ * Responsive breakpoints:
+ * - xs (< 600px): Ultra-compact layout with minimal padding, smaller gaps, reduced font sizes
+ * - sm+ (≥ 600px): Full layout with standard padding and normal sizes
+ * Touch gestures with swipe detection and minimum distance threshold (30px)
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Chip } from '@mui/material';
 import { SportsEsports as GameIcon, AddCircleOutline as NewGameIcon, ArrowUpward, ArrowDownward, ArrowBack, ArrowForward } from '@mui/icons-material';
