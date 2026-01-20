@@ -400,7 +400,7 @@ interface SaveGame {
     id: string;
     name: string;
     userInput: number[][];
-    notes: CellNote;
+    notes: { [key: string]: number[] }; // Notes stored as arrays for JSON serialization
     timestamp: number;
 }
 
@@ -414,6 +414,28 @@ interface GameState {
 }
 
 const STORAGE_KEY = 'sudoku_state';
+const SAVED_GAMES_KEY = 'sudoku_saved_games';
+
+const loadSavedGames = (): SaveGame[] => {
+    try {
+        const saved = localStorage.getItem(SAVED_GAMES_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved) as SaveGame[];
+            return parsed;
+        }
+    } catch (error) {
+        console.error('Failed to load saved games:', error);
+    }
+    return [];
+};
+
+const saveSavedGames = (games: SaveGame[]): void => {
+    try {
+        localStorage.setItem(SAVED_GAMES_KEY, JSON.stringify(games));
+    } catch (error) {
+        console.error('Failed to save games:', error);
+    }
+};
 
 const loadGameState = (): GameState | null => {
     try {
@@ -529,6 +551,11 @@ export const Sudoku = () => {
         const initGame = async () => {
             try {
                 console.log('Initializing Sudoku game...');
+
+                // Load saved games from localStorage
+                const loadedGames = loadSavedGames();
+                setSavedGames(loadedGames);
+
                 const saved = loadGameState();
                 if (saved && saved.puzzle && saved.puzzle.length === 9) {
                     console.log('Loading saved game');
@@ -567,6 +594,13 @@ export const Sudoku = () => {
             });
         }
     }, [puzzle, userInput, solution, difficulty, notes, gameGivenUp, initialized]);
+
+    // Save saved games to localStorage whenever they change
+    useEffect(() => {
+        if (initialized) {
+            saveSavedGames(savedGames);
+        }
+    }, [savedGames, initialized]);
 
     const handleNewGame = () => {
         setSelectedDifficulty(difficulty);
@@ -726,11 +760,22 @@ export const Sudoku = () => {
         setSavedGames([]);
     };
 
+    const generateDefaultSaveName = (): string => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        return `Save ${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+
     const handleSaveGame = () => {
         const name = saveName.trim();
         if (!name) return;
 
-        // Convert notes Sets to arrays for storage
+        // Convert notes Sets to arrays for JSON serialization
         const notesAsArrays: { [key: string]: number[] } = {};
         Object.entries(notes).forEach(([key, value]) => {
             notesAsArrays[key] = Array.from(value);
@@ -740,7 +785,7 @@ export const Sudoku = () => {
             id: Date.now().toString(),
             name,
             userInput: JSON.parse(JSON.stringify(userInput)),
-            notes: notes, // Store the actual Sets
+            notes: notesAsArrays, // Store notes as arrays
             timestamp: Date.now(),
         };
 
@@ -751,7 +796,14 @@ export const Sudoku = () => {
 
     const handleLoadGame = (save: SaveGame) => {
         setUserInput(JSON.parse(JSON.stringify(save.userInput)));
-        setNotes(JSON.parse(JSON.stringify(save.notes)));
+
+        // Convert notes arrays back to Sets
+        const notesAsSets: CellNote = {};
+        Object.entries(save.notes).forEach(([key, value]) => {
+            notesAsSets[key] = new Set(value);
+        });
+        setNotes(notesAsSets);
+
         setLoadDialogOpen(false);
         setSelectedCell(null);
         setPopoverAnchor(null);
@@ -891,7 +943,10 @@ export const Sudoku = () => {
                     <Button
                         variant="outlined"
                         startIcon={<SaveIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-                        onClick={() => setSaveDialogOpen(true)}
+                        onClick={() => {
+                            setSaveName(generateDefaultSaveName());
+                            setSaveDialogOpen(true);
+                        }}
                         disabled={loading || gameGivenUp}
                         sx={{
                             minWidth: { xs: 'auto', sm: 'auto' },
