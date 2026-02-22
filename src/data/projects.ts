@@ -29,5 +29,12 @@ export const projects: Project[] = [
         categories: ['game', 'puzzle'],
         path: '/tetris',
     },
+    {
+        id: 'flash-cards',
+        name: 'Flash Cards',
+        description: 'Create and study flash card collections. Shuffle, random pick, and export/import for sharing.',
+        categories: ['tool', 'education'],
+        path: '/flash-cards',
+    },
     // Add more projects here as you build them
 ];
