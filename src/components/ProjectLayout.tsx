@@ -42,7 +42,8 @@ export const ProjectLayout = ({ title, icon, actions, mobileActions, children, m
                 position="sticky"
                 elevation={2}
                 sx={{
-                    bgcolor: 'primary.main',
+                    borderBottom: '4px solid',
+                    borderColor: 'primary.dark',
                 }}
             >
                 <Toolbar>
@@ -57,8 +58,9 @@ export const ProjectLayout = ({ title, icon, actions, mobileActions, children, m
                         component="h1"
                         sx={{
                             flexGrow: 1,
-                            fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                            fontWeight: 600,
+                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                            fontWeight: 400,
+                            letterSpacing: 1,
                         }}
                     >
                         {title}

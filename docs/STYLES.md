@@ -4,6 +4,8 @@
 
 This project uses **Material-UI (MUI)** as its primary UI framework. All components are styled using MUI's component library and theming system. **There are no CSS files in this repo** — everything is styled through the global theme and the `sx` prop.
 
+The UI follows a **retro game** style inspired by classic Mario games: a bright sky-blue background, saturated red/green/yellow accents, pixel fonts, and sharp (square) corners. Fonts ("Press Start 2P" for headings/buttons, "VT323" for body text) are loaded from Google Fonts via `<link>` tags in `index.html`.
+
 The `sx` prop accepts theme-aware values and responsive breakpoint objects:
 
 ```tsx
@@ -19,33 +21,54 @@ sx={{ fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' }, p: { xs: 2, md: 
 
 ## Theme Configuration
 
-The global theme is defined once in `src/App.tsx` (do not create another `ThemeProvider`):
+The global theme is defined once in `src/App.tsx` (do not create another `ThemeProvider`). Current retro arcade theme:
 
 ```tsx
 const theme = createTheme({
     palette: {
         mode: 'light',
-        primary: {
-            main: '#6366f1', // Indigo
-        },
-        secondary: {
-            main: '#ec4899', // Pink
-        },
-        background: {
-            default: '#f8fafc',
-            paper: '#ffffff',
-        },
+        primary: { main: '#e52521' }, // Mario red
+        secondary: { main: '#43b047' }, // Pipe green
+        background: { default: '#7fc4ff', paper: '#ffffff' }, // sky blue / white
+        divider: '#e9dfc8',
     },
     typography: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        fontFamily: '"VT323", "Courier New", monospace',
+        // h1-h6, overline, button use '"Press Start 2P", "VT323", ...'
     },
-    shape: {
-        borderRadius: 12,
-    },
+    shape: { borderRadius: 0 }, // sharp pixel edges
+    components: {/* retro overrides: chunky buttons, neon borders, square dialogs */},
 });
 ```
 
 Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `background.default`, `background.paper`, `text.primary`, `text.secondary`, `error.main`, `divider`.
+
+### Fonts
+
+- **Press Start 2P** — headings (`h1`–`h6`), buttons, chips, overlines. Never bold it (`fontWeight: 400`); it has a single weight and faux-bold looks wrong.
+- **VT323** — body, captions, inputs, lists. Google Fonts link lives in `index.html`; Prettier/ESLint ignore it.
+
+### Theme component overrides (arcade look)
+
+- `MuiAppBar` — dark navy bar with a solid 4px neon-cyan bottom border.
+- `MuiButton` — square; `contained` buttons get a NES-style chunky offset shadow that "presses down" on hover/active; `outlined` buttons use 2px neon borders.
+- `MuiPaper` / `MuiDialog` / `MuiAlert` / `MuiChip` / `MuiToggleButton` — square corners + border, bordered dialogs use a 3px neon outline.
+- `MuiOutlinedInput` — square, neon-cyan focus border.
+- In-game colors (2048 tile ramp, Lucky Wheel palette, Sudoku cell states) are custom neon palettes defined in their components using theme tokens wherever possible.
+
+## Retro Palette Reference
+
+| Token                | Hex       | Use                             |
+| -------------------- | --------- | ------------------------------- |
+| `primary.main`       | `#e52521` | Mario red: AppBar, main buttons |
+| `secondary.main`     | `#43b047` | pipe green (flash card backs)   |
+| `success.main`       | `#43b047` | success feedback / online chip  |
+| `warning.main`       | `#f5aa00` | coin yellow: warnings           |
+| `error.main`         | `#d63031` | errors / danger                 |
+| `info.main`          | `#049cd8` | overalls blue: info notices     |
+| `background.default` | `#7fc4ff` | sky-blue page background        |
+| `background.paper`   | `#ffffff` | cards, dialogs, panels          |
+| `divider`            | `#e9dfc8` | warm cream borders, grid lines  |
 
 ## Shared Layout (ProjectLayout)
 
@@ -92,6 +115,34 @@ All pages are wrapped in `ProjectLayout` (`src/components/ProjectLayout.tsx`). I
     </CardContent>
 </Card>
 ```
+
+### Favorite / star button overlay
+
+Project cards on the Home page have a star (`StarIcon` / `StarBorderIcon`) icon button in the
+card's top-right corner. Use the same pattern for any favoritable card:
+
+```tsx
+<Card sx={{ position: 'relative' }}>
+    <CardActionArea component={Link} to={path} sx={{ height: '100%' }}>
+        <CardContent>{/* title, description, chips */}</CardContent>
+    </CardActionArea>
+    <IconButton
+        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        onClick={e => {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleFavorite(project.id);
+        }}
+        sx={{ position: 'absolute', top: 8, right: 8, color: isFavorite ? 'warning.main' : 'action.disabled' }}
+    >
+        {isFavorite ? <StarIcon /> : <StarBorderIcon />}
+    </IconButton>
+</Card>
+```
+
+Favorites persist in `localStorage` (key `favoriteProjects`, an ordered array of project ids — the
+earliest favorited id comes first). Home ordering rule: favorites first (by selection order),
+then the remaining projects alphabetically by name, with **Data Manager always pinned last**.
 
 ### Dialog (forms / confirmations)
 

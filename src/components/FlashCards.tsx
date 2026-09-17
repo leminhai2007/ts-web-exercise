@@ -500,7 +500,7 @@ export const FlashCards = () => {
                                     p: 4,
                                     bgcolor: 'primary.main',
                                     color: 'white',
-                                    borderRadius: 2,
+                                    borderRadius: 0,
                                 }}
                             >
                                 <Typography variant="overline" sx={{ mb: 2 }}>
@@ -529,7 +529,7 @@ export const FlashCards = () => {
                                     p: 4,
                                     bgcolor: 'secondary.main',
                                     color: 'white',
-                                    borderRadius: 2,
+                                    borderRadius: 0,
                                 }}
                             >
                                 <Typography variant="overline" sx={{ mb: 2 }}>

@@ -268,32 +268,33 @@ export const Game2048 = () => {
     };
 
     const getTileColor = (value: number): string => {
-        // Using theme-based color scheme with indigo/blue palette
+        // Bright Mario-inspired tile palette
         const colors: { [key: number]: string } = {
-            2: '#e0e7ff', // indigo-100
-            4: '#c7d2fe', // indigo-200
-            8: '#a5b4fc', // indigo-300
-            16: '#818cf8', // indigo-400
-            32: '#6366f1', // indigo-500 (primary)
-            64: '#4f46e5', // indigo-600
-            128: '#4338ca', // indigo-700
-            256: '#3730a3', // indigo-800
-            512: '#312e81', // indigo-900
-            1024: '#1e1b4b', // indigo-950
-            2048: '#ec4899', // pink (secondary color)
+            2: '#fff3c4', // pale sun
+            4: '#ffe082', // sunny yellow
+            8: '#ffca28', // golden yellow
+            16: '#ffb300', // amber
+            32: '#ff7043', // orange
+            64: '#ff5252', // light red
+            128: '#ff2b6d', // pink
+            256: '#9c27b0', // purple
+            512: '#3f51b5', // indigo
+            1024: '#00acc1', // cyan
+            2048: '#ffd700', // coin gold (win tile)
         };
-        return colors[value] || '#e5e7eb';
+        return colors[value] || '#ffe8cc';
     };
 
     const getTileTextColor = (value: number): string => {
-        return value <= 4 ? '#1e293b' : '#ffffff';
+        if (value === 64 || value === 128 || value === 256 || value === 512 || value === 1024) return '#ffffff';
+        return '#3a2d1f';
     };
 
     return (
         <ProjectLayout title="2048" icon={<GameIcon />} maxWidth="sm" containerPadding={{ xs: 2, sm: 4 }}>
             {/* Score and New Game Button */}
             <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                <Typography variant="h5" sx={{ fontWeight: 400 }}>
                     Score:{' '}
                     <Box component="span" sx={{ color: 'primary.main' }}>
                         {score}
@@ -303,15 +304,15 @@ export const Game2048 = () => {
                     New Game
                 </Button>
             </Stack>
-            <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: { xs: 2, sm: 3 }, bgcolor: 'grey.100', mx: { xs: 0.5, sm: 0 } }}>
+            <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: 0, bgcolor: 'background.paper', mx: { xs: 0.5, sm: 0 } }}>
                 <Box
                     sx={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(4, 1fr)',
                         gap: { xs: 0.5, sm: 2 },
                         p: { xs: 0.5, sm: 2 },
-                        bgcolor: 'grey.200',
-                        borderRadius: 2,
+                        bgcolor: 'divider',
+                        borderRadius: 0,
                         maxWidth: '100%',
                     }}
                     onTouchStart={handleTouchStart}
@@ -327,14 +328,14 @@ export const Game2048 = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    bgcolor: cell > 0 ? getTileColor(cell) : 'grey.300',
+                                    bgcolor: cell > 0 ? getTileColor(cell) : 'background.paper',
                                     color: getTileTextColor(cell),
                                     fontSize: {
                                         xs: cell >= 1000 ? '1rem' : cell >= 100 ? '1.25rem' : '1.5rem',
                                         sm: cell >= 1000 ? '2rem' : cell >= 100 ? '2.5rem' : '3rem',
                                     },
                                     fontWeight: 700,
-                                    borderRadius: { xs: 0.5, sm: 1 },
+                                    borderRadius: 0,
                                     transition: 'all 0.15s ease-in-out',
                                     minWidth: 0,
                                     overflow: 'hidden',
@@ -347,7 +348,7 @@ export const Game2048 = () => {
                 </Box>
             </Paper>
 
-            <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
+            <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 }, borderRadius: 0 }}>
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ display: 'block', mb: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     Use arrow keys or swipe to move tiles. Combine tiles with the same number to create larger numbers!
                 </Typography>
@@ -360,7 +361,7 @@ export const Game2048 = () => {
             </Paper>
 
             <Dialog open={won && !gameOver} onClose={() => setWon(false)} maxWidth="xs" fullWidth>
-                <DialogTitle sx={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 600 }}>You Win! 🎉</DialogTitle>
+                <DialogTitle sx={{ textAlign: 'center', fontSize: '1.25rem', fontWeight: 400, lineHeight: 1.8 }}>You Win! 🎉</DialogTitle>
                 <DialogContent>
                     <Typography align="center" variant="body1">
                         You reached 2048!
@@ -377,7 +378,7 @@ export const Game2048 = () => {
             </Dialog>
 
             <Dialog open={gameOver} maxWidth="xs" fullWidth>
-                <DialogTitle sx={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 600 }}>Game Over!</DialogTitle>
+                <DialogTitle sx={{ textAlign: 'center', fontSize: '1.25rem', fontWeight: 400, lineHeight: 1.8 }}>Game Over!</DialogTitle>
                 <DialogContent>
                     <Typography align="center" variant="body1">
                         Final Score: {score}

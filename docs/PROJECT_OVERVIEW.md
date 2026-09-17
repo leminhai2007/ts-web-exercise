@@ -6,7 +6,7 @@ A web application built with React, TypeScript, and Vite that hosts multiple too
 
 ## Features
 
-- **Home Page**: Browse all available projects with search and category filtering
+- **Home Page**: Browse all available projects with search and category filtering; star favorites (pinned first), otherwise alphabetical with Data Manager always last
 - **2048 Game**: Classic sliding puzzle game
 - **Sudoku**: Sudoku puzzle game with multiple difficulty levels
 - **Lucky Wheel**: Interactive decision-making wheel with sharing capabilities

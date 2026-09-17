@@ -233,7 +233,7 @@
  * - Auto-closes after entry in number mode
  * - Stays open in note mode
  * - Disabled when game over or validation errors
- * - Indigo primary color scheme
+ *  - Indigo primary color scheme replaced by Mario red primary (bright retro theme)
  *
  * Alerts:
  * - Error: API failures
@@ -247,20 +247,20 @@
  *
  * Cell Styling:
  * Background Colors:
- * - Invalid: #fee2e2 (light red) - priority
- * - Selected: #ddd6fe (light indigo)
- * - Same row/col/box: #f3f4f6 (light gray)
- * - Default: #ffffff (white)
+ * - Invalid: alpha(error, 0.28) - priority
+ * - Selected: alpha(primary, 0.3) (Mario red tint)
+ * - Same row/col/box: alpha(primary, 0.1) (light red tint)
+ * - Default: background.paper (white)
  *
  * Text Colors:
- * - Invalid: #dc2626 (red) - priority
- * - Pre-filled: #1f2937 (dark gray, bold)
- * - User input: #6366f1 (primary indigo)
+ * - Invalid: error.light (light red) - priority
+ * - Pre-filled: text.primary (near-black, bold)
+ * - User input: primary.main (Mario red)
  *
  * Border System:
  * - Thick borders every 3 cells (box boundaries)
- * - 2px solid indigo for box edges
- * - 1px solid gray for cell edges
+ * - 2px solid Mario red for box edges
+ * - 1px solid divider for cell edges
  *
  * Cell Content:
  * 1. Number Display: Large, centered font
@@ -291,8 +291,8 @@
  *
  * Interaction States:
  * Hover:
- * - Pre-filled: No change
- * - Empty (not given up): Light indigo highlight
+ *  - Pre-filled: No change
+ *  - Empty (not given up): Light red highlight
  * - Cursor: pointer only for editable cells
  *
  * Click:
@@ -301,10 +301,10 @@
  * - Triggers parent's onCellClick callback
  *
  * COLOR SCHEME:
- * Follows Material-UI theme:
- * Primary: #6366f1 (Indigo 500)
- * Background: #f8fafc (Slate 50), #ffffff (White)
- * Grey tones: #f3f4f6, #e5e7eb
+ * Follows Material-UI retro arcade theme (light):
+ * Primary: #e52521 (Mario Red)
+ * Background: #7fc4ff (sky blue), #ffffff (white cards)
+ * Border tones: #e9dfc8 (divider)
  * Success: Green, Error: Red, Info: Blue
  *
  * CORS AND PROXY:

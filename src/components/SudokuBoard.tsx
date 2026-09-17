@@ -1,5 +1,5 @@
 // Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md, docs/STYLES.md (part of the Sudoku page)
-import { Box, Paper } from '@mui/material';
+import { Box, Paper, alpha, useTheme } from '@mui/material';
 
 interface CellNote {
     [key: string]: Set<number>;
@@ -16,17 +16,19 @@ interface SudokuBoardProps {
 }
 
 export const SudokuBoard = ({ puzzle, userInput, notes, selectedCell, onCellClick, gameGivenUp, invalidCells }: SudokuBoardProps) => {
+    const theme = useTheme();
+
     const getCellColor = (row: number, col: number): string => {
         const key = `${row}-${col}`;
 
         // Check if cell is invalid
         if (invalidCells.has(key)) {
-            return '#fecaca'; // Light red for invalid cells
+            return alpha(theme.palette.error.main, 0.28);
         }
 
         // Check if cell is selected
         if (selectedCell && selectedCell.row === row && selectedCell.col === col) {
-            return '#ddd6fe'; // Light indigo
+            return alpha(theme.palette.primary.main, 0.3);
         }
 
         // Check if cell is in same row, column, or box as selected cell
@@ -36,32 +38,32 @@ export const SudokuBoard = ({ puzzle, userInput, notes, selectedCell, onCellClic
             const sameBox = Math.floor(selectedCell.row / 3) === Math.floor(row / 3) && Math.floor(selectedCell.col / 3) === Math.floor(col / 3);
 
             if (sameRow || sameCol || sameBox) {
-                return '#f3f4f6'; // Light gray
+                return alpha(theme.palette.primary.main, 0.1);
             }
         }
 
         // Default cell color
-        return '#ffffff';
+        return theme.palette.background.paper;
     };
 
     const getCellTextColor = (row: number, col: number): string => {
         const key = `${row}-${col}`;
 
-        // Red text for invalid cells
+        // Light red text for invalid cells
         if (invalidCells.has(key)) {
-            return '#dc2626'; // Red 600
+            return theme.palette.error.light;
         }
 
         if (puzzle[row][col] !== 0) {
-            return '#1f2937'; // Dark gray for pre-filled cells
+            return theme.palette.text.primary; // Light text for pre-filled cells
         }
-        return '#6366f1'; // Primary indigo for user input
+        return theme.palette.primary.main; // Neon cyan for user input
     };
 
     const getCellBorderStyle = (row: number, col: number) => {
         return {
-            borderRight: col % 3 === 2 && col !== 8 ? '2px solid #6366f1' : '1px solid #e5e7eb',
-            borderBottom: row % 3 === 2 && row !== 8 ? '2px solid #6366f1' : '1px solid #e5e7eb',
+            borderRight: col % 3 === 2 && col !== 8 ? `2px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.divider}`,
+            borderBottom: row % 3 === 2 && row !== 8 ? `2px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.divider}`,
         };
     };
 
@@ -101,7 +103,7 @@ export const SudokuBoard = ({ puzzle, userInput, notes, selectedCell, onCellClic
                             key={num}
                             sx={{
                                 fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                                color: cellNotes.has(num) ? '#6366f1' : 'transparent',
+                                color: cellNotes.has(num) ? theme.palette.primary.main : 'transparent',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -136,8 +138,8 @@ export const SudokuBoard = ({ puzzle, userInput, notes, selectedCell, onCellClic
                 elevation={3}
                 sx={{
                     p: { xs: 1, sm: 2 },
-                    borderRadius: 2,
-                    bgcolor: 'grey.100',
+                    borderRadius: 0,
+                    bgcolor: theme.palette.background.default,
                     display: 'inline-block',
                     width: '100%',
                     maxWidth: { xs: '100%', sm: 500 },
@@ -148,9 +150,9 @@ export const SudokuBoard = ({ puzzle, userInput, notes, selectedCell, onCellClic
                         display: 'grid',
                         gridTemplateColumns: 'repeat(9, 1fr)',
                         gap: 0,
-                        bgcolor: '#e5e7eb',
-                        border: '2px solid #6366f1',
-                        borderRadius: 1,
+                        bgcolor: theme.palette.divider,
+                        border: `2px solid ${theme.palette.primary.main}`,
+                        borderRadius: 0,
                         overflow: 'hidden',
                         aspectRatio: '1',
                         width: '100%',
@@ -173,7 +175,9 @@ export const SudokuBoard = ({ puzzle, userInput, notes, selectedCell, onCellClic
                                     ...getCellBorderStyle(rowIndex, colIndex),
                                     '&:hover': {
                                         bgcolor:
-                                            puzzle[rowIndex][colIndex] === 0 && !gameGivenUp && invalidCells.size === 0 ? '#e0e7ff' : getCellColor(rowIndex, colIndex),
+                                            puzzle[rowIndex][colIndex] === 0 && !gameGivenUp && invalidCells.size === 0
+                                                ? alpha(theme.palette.primary.main, 0.18)
+                                                : getCellColor(rowIndex, colIndex),
                                     },
                                 }}
                             >

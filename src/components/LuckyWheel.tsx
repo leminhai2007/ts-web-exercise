@@ -20,7 +20,7 @@
  *
  * 2. Material UI Design
  *    - Consistent with other project components
- *    - AppBar with white background, indigo icons, back button
+ *  - AppBar with dark background, back button
  *    - Responsive layout for mobile and desktop
  *    - Paper component with elevation for wheel container
  *    - Icon-only buttons on mobile, icon+text on desktop
@@ -124,8 +124,8 @@
  * - SavedWheel: { id, name, items[], createdAt }
  *
  * COLOR PALETTE:
- * 10 vibrant colors cycle through items:
- * Red, Teal, Blue, Coral, Mint, Yellow, Purple, Sky Blue, Orange, Green
+ * 10 Mario-inspired bright colors cycle through items:
+ * Cyan, Magenta, Green, Yellow, Orange, Purple, Red, Sky Blue, Hot Pink, Mint
  *
  * TECHNICAL IMPLEMENTATION:
  * - HTML5 Canvas API with 2D context
@@ -193,7 +193,7 @@ import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from
 import { ProjectLayout } from './ProjectLayout';
 import type { WheelItem, SavedWheel } from '../types/LuckyWheel';
 
-const DEFAULT_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'];
+const DEFAULT_COLORS = ['#e52521', '#049cd8', '#f5aa00', '#43b047', '#ff7043', '#a041ff', '#e91e63', '#00a86b', '#7c4dff', '#ff5252'];
 
 const DEFAULT_ITEMS: WheelItem[] = [
     { id: '1', text: 'Yes', color: DEFAULT_COLORS[0] },
@@ -310,13 +310,30 @@ export const LuckyWheel = () => {
 
         ctx.restore();
 
+        // Strong dark rim so the wheel stands out against the page background
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius + 4, 0, 2 * Math.PI);
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = '#3a2d1f';
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius - 2, 0, 2 * Math.PI);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#3a2d1f';
+        ctx.stroke();
+
         ctx.beginPath();
         ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#3a2d1f';
         ctx.fill();
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = theme.palette.primary.main;
+        ctx.lineWidth = 4;
         ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = theme.palette.primary.main;
+        ctx.fill();
 
         ctx.beginPath();
         ctx.moveTo(centerX, 10);
