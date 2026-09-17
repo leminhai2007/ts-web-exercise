@@ -6,6 +6,7 @@ import { Game2048 } from './components/Game2048';
 import { Sudoku } from './components/Sudoku';
 import { LuckyWheel } from './components/LuckyWheel';
 import { FlashCards } from './components/FlashCards';
+import { DataManager } from './components/DataManager';
 
 const theme = createTheme({
     palette: {
@@ -40,6 +41,7 @@ function App() {
                     <Route path="/sudoku" element={<Sudoku />} />
                     <Route path="/lucky-wheel" element={<LuckyWheel />} />
                     <Route path="/flash-cards" element={<FlashCards />} />
+                    <Route path="/data-manager" element={<DataManager />} />
                 </Routes>
             </Router>
         </ThemeProvider>

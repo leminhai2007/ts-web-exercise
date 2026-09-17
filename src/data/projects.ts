@@ -30,5 +30,12 @@ export const projects: Project[] = [
         categories: ['tool', 'education'],
         path: '/flash-cards',
     },
+    {
+        id: 'data-manager',
+        name: 'Data Manager',
+        description: 'Export and import saved data from every project. Move your progress when the site changes domain.',
+        categories: ['tool', 'data'],
+        path: '/data-manager',
+    },
     // Add more projects here as you build them
 ];
