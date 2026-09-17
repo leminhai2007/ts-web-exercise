@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md (Types Convention)
 export interface FlashCard {
     id: string;
     label: string;

@@ -8,7 +8,7 @@ This guide covers security best practices for your application, including code o
 
 ✅ **Good News**: Vite automatically minifies and uglifies your production code!
 
-When you run `yarn build`, Vite:
+When you run `npm run build`, Vite:
 
 - Minifies JavaScript using esbuild (very fast)
 - Removes whitespace and comments
@@ -37,7 +37,7 @@ build: {
 
 ```bash
 # Build for production
-yarn build
+npm run build
 
 # Check the output in dist/assets/
 # You'll see minified files like: index-abc123.js
@@ -177,7 +177,7 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
 If you must store sensitive data temporarily (e.g., user tokens):
 
 ```bash
-yarn add crypto-js
+npm install crypto-js
 ```
 
 ```typescript
@@ -335,20 +335,20 @@ Or configure on your hosting platform:
 
 ```bash
 # Check for vulnerabilities
-yarn audit
+npm audit
 
 # Fix automatically (if possible)
-yarn audit fix
+npm audit fix
 ```
 
 ### Keep Dependencies Updated
 
 ```bash
 # Check outdated packages
-yarn outdated
+npm outdated
 
 # Update packages
-yarn upgrade-interactive --latest
+npm update
 ```
 
 ### Use Dependabot (GitHub)
@@ -370,13 +370,13 @@ updates:
 
 Before deploying to production:
 
-- [ ] Run `yarn build` and check output is minified
+- [ ] Run `npm run build` and check output is minified
 - [ ] Verify no console.logs in production code
 - [ ] Check `.env.local` is in `.gitignore`
 - [ ] Environment variables set on hosting platform
 - [ ] No hardcoded secrets in code
 - [ ] Source maps disabled (`sourcemap: false`)
-- [ ] Dependencies audited (`yarn audit`)
+- [ ] Dependencies audited (`npm audit`)
 - [ ] HTTPS enabled (automatic on most platforms)
 - [ ] CSP headers configured
 - [ ] API keys are public-safe or proxied through backend
@@ -419,16 +419,16 @@ Add to `index.html`:
 
 ```bash
 # Build production version
-yarn build
+npm run build
 
 # Test locally
-yarn preview
+npm run preview
 
 # Audit dependencies
-yarn audit
+npm audit
 
 # Check bundle size (smaller is better for security too)
-yarn build --mode production
+npm run build -- --mode production
 ```
 
 ### After Deployment

@@ -1,10 +1,10 @@
+// Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md (routes), docs/STYLES.md (theme)
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { HomePage } from './components/HomePage';
 import { Game2048 } from './components/Game2048';
 import { Sudoku } from './components/Sudoku';
 import { LuckyWheel } from './components/LuckyWheel';
-import { Tetris } from './components/Tetris';
 import { FlashCards } from './components/FlashCards';
 
 const theme = createTheme({
@@ -39,7 +39,6 @@ function App() {
                     <Route path="/2048" element={<Game2048 />} />
                     <Route path="/sudoku" element={<Sudoku />} />
                     <Route path="/lucky-wheel" element={<LuckyWheel />} />
-                    <Route path="/tetris" element={<Tetris />} />
                     <Route path="/flash-cards" element={<FlashCards />} />
                 </Routes>
             </Router>

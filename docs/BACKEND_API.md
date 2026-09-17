@@ -90,7 +90,7 @@ app.listen(PORT, () => {
 **Start Development:**
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 This runs:
@@ -476,7 +476,7 @@ console.log('Response time:', Date.now() - startTime, 'ms');
 
 ```bash
 # Start dev servers
-yarn dev
+npm run dev
 
 # Test endpoint
 curl -X POST http://localhost:3000/api/youdosudoku \
@@ -503,7 +503,7 @@ curl -X POST https://your-site.vercel.app/api/youdosudoku \
 - [ ] Create frontend API client in `src/api/`
 - [ ] Add environment variables to `.env`
 - [ ] Add environment variables to Vercel dashboard
-- [ ] Test endpoint locally with `yarn dev`
+- [ ] Test endpoint locally with `npm run dev`
 - [ ] Commit and push to trigger Vercel deployment
 - [ ] Test endpoint on deployed site
 - [ ] Update documentation
@@ -550,7 +550,7 @@ netstat -ano | findstr :3000
 netstat -ano | findstr :5173
 
 # Restart dev servers
-yarn dev
+npm run dev
 ```
 
 ## File Structure
@@ -594,8 +594,8 @@ ts-web-exercise/
 ### Installation
 
 ```bash
-yarn add express cors
-yarn add -D @vercel/node concurrently
+npm install express cors
+npm install -D @vercel/node concurrently
 ```
 
 ---

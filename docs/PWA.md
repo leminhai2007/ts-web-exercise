@@ -95,7 +95,7 @@ The build process generates:
 ### Development Mode
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 The PWA features are enabled in dev mode for testing.
@@ -103,8 +103,8 @@ The PWA features are enabled in dev mode for testing.
 ### Production Build
 
 ```bash
-yarn build
-yarn preview
+npm run build
+npm run preview
 ```
 
 Test the production build with full PWA functionality.
@@ -146,7 +146,7 @@ PWA features are supported in:
 
 ### Offline mode not working?
 
-- Rebuild the app: `yarn build`
+- Rebuild the app: `npm run build`
 - Clear service worker cache in DevTools
 - Unregister old service workers
 - Check browser console for errors

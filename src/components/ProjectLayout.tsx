@@ -28,6 +28,8 @@ interface ProjectLayoutProps {
  * - AppBar with back button, title, icon, and action buttons
  * - Responsive container with configurable max width
  * - Consistent spacing and styling
+ *
+ * Related docs (update if this component changes): docs/STYLES.md
  */
 export const ProjectLayout = ({ title, icon, actions, mobileActions, children, maxWidth = 'md', containerPadding, backgroundColor }: ProjectLayoutProps) => {
     const defaultPadding = { xs: 2, sm: 4 };

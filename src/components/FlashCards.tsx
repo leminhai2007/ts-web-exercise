@@ -3,6 +3,8 @@
  *
  * A learning tool for creating and studying flash card collections.
  *
+ * Related docs (update if this component changes): AGENTS.md, docs/NEW_PROJECT_TEMPLATE.md, docs/STYLES.md
+ *
  * OVERVIEW:
  * Built with Material UI following the project's design system. Users can create collections,
  * add flash cards in bulk, study them with shuffle and random selection, and export/import
@@ -90,10 +92,25 @@ import type { FlashCard, FlashCardCollection } from '../types/FlashCard';
 
 const STORAGE_KEY = 'flashcard-collections';
 
+const loadStoredCollections = (): FlashCardCollection[] => {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored) return [];
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.error('Failed to parse stored collections:', error);
+        return [];
+    }
+};
+
 export const FlashCards = () => {
     // State for collections
-    const [collections, setCollections] = useState<FlashCardCollection[]>([]);
-    const [currentCollectionId, setCurrentCollectionId] = useState<string | null>(null);
+    const [collections, setCollections] = useState<FlashCardCollection[]>(loadStoredCollections);
+    const [currentCollectionId, setCurrentCollectionId] = useState<string | null>(() => {
+        const stored = loadStoredCollections();
+        return stored.length > 0 ? stored[0].id : null;
+    });
 
     // State for dialogs
     const [showNewCollectionDialog, setShowNewCollectionDialog] = useState(false);
@@ -123,22 +140,6 @@ export const FlashCards = () => {
     });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Load collections from localStorage on mount
-    useEffect(() => {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setCollections(parsed);
-                if (parsed.length > 0) {
-                    setCurrentCollectionId(parsed[0].id);
-                }
-            } catch (error) {
-                console.error('Failed to parse stored collections:', error);
-            }
-        }
-    }, []);
 
     // Save collections to localStorage whenever they change
     useEffect(() => {
@@ -202,7 +203,6 @@ export const FlashCards = () => {
 
         const lines = bulkCardInput.split('\n').filter(line => line.trim());
         const newCards: FlashCard[] = [];
-        // eslint-disable-next-line
         const timestamp = Date.now();
 
         for (const line of lines) {
@@ -213,7 +213,6 @@ export const FlashCards = () => {
             const content = line.substring(colonIndex + 1).trim();
 
             if (label && content) {
-                // eslint-disable-next-line
                 const randomId = Math.random();
                 newCards.push({
                     id: `card-${timestamp}-${randomId}`,
@@ -259,7 +258,6 @@ export const FlashCards = () => {
 
         const updatedCards = currentCollection.cards.map(card => (card.id === editingCard.id ? { ...card, label: editLabel.trim(), content: editContent.trim() } : card));
 
-        // eslint-disable-next-line
         const timestamp = Date.now();
         const updatedCollection = {
             ...currentCollection,
@@ -277,7 +275,6 @@ export const FlashCards = () => {
     const handleDeleteCard = (cardId: string) => {
         if (!currentCollection) return;
 
-        // eslint-disable-next-line
         const timestamp = Date.now();
         const updatedCollection = {
             ...currentCollection,
@@ -574,9 +571,9 @@ export const FlashCards = () => {
 
             {/* Control Buttons */}
             {currentCollection && (
-                <Stack spacing={2} sx={{ mb: 3 }} alignItems="center">
+                <Stack spacing={2} sx={{ mb: 3, alignItems: 'center' }}>
                     {/* First Row: Collections, Add Cards, Shuffle, Random */}
-                    <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" gap={1}>
+                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
                         <Button
                             variant="outlined"
                             startIcon={<CollectionsIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
@@ -636,7 +633,7 @@ export const FlashCards = () => {
                     </Stack>
 
                     {/* Second Row: Export, Import */}
-                    <Stack direction="row" spacing={1} justifyContent="center">
+                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
                         <Button
                             variant="outlined"
                             startIcon={<DownloadIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
@@ -676,7 +673,7 @@ export const FlashCards = () => {
                     <Typography color="text.secondary" sx={{ mb: 3 }}>
                         Create your first flash card collection or import an existing one
                     </Typography>
-                    <Stack direction="row" spacing={2} justifyContent="center">
+                    <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
                         <Button variant="contained" size="large" startIcon={<AddIcon />} onClick={() => setShowNewCollectionDialog(true)}>
                             Create Collection
                         </Button>
@@ -695,12 +692,12 @@ export const FlashCards = () => {
             ) : (
                 <Box>
                     <Paper sx={{ p: 3, mb: 3 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+                        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                             <Box>
                                 <Typography variant="h5" gutterBottom>
                                     {currentCollection.name}
                                 </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center">
+                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                                     <Chip label={`${currentCollection.cards.length} card(s)`} size="small" color="primary" />
                                     <Typography variant="caption" color="text.secondary">
                                         Updated: {new Date(currentCollection.updatedAt).toLocaleDateString()}
@@ -735,7 +732,7 @@ export const FlashCards = () => {
                             {currentCollection.cards.map(card => (
                                 <Card key={card.id}>
                                     <CardContent>
-                                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                                        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <Box sx={{ flex: 1 }}>
                                                 <Typography variant="h6" gutterBottom>
                                                     {card.label}

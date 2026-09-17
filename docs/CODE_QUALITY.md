@@ -37,16 +37,16 @@
 
 ```bash
 # Check formatting without changing files
-yarn check:all:format
+npm run check:all:format
 
 # Fix formatting
-yarn fix:all:format
+npm run fix:all:format
 
 # Check code conventions (ESLint)
-yarn check:all:convention
+npm run check:all:convention
 
 # Fix code conventions
-yarn fix:all:convention
+npm run fix:all:convention
 ```
 
 ### Before Commit (Automatic - CHECK ONLY)
@@ -57,32 +57,29 @@ When you run `git commit`, Husky will automatically:
 2. Check code formatting with Prettier
 3. Check for ESLint issues
 4. **STOP commit if issues found** (no auto-fix)
-5. You manually fix with `yarn fix:staged:convention` or fix code yourself
+5. You manually fix with `npm run fix:staged` or fix code yourself
 
 ### Package Manager
 
-The project now uses **Yarn** instead of npm:
+The project uses **npm** as its package manager:
 
-- Faster installation
-- More reliable dependency resolution
-- Better workspace support
-- Uses `yarn.lock` instead of `package-lock.json`
+- Cross-platform and included with Node.js
+- Lockfile is `package-lock.json`
+- Do not use yarn in this repository
 
 ## Common Commands
 
-| Task                   | Command                      | Scope       |
-| ---------------------- | ---------------------------- | ----------- |
-| Install dependencies   | `yarn` or `yarn install`     | -           |
-| Start dev server       | `yarn dev`                   | -           |
-| Build for production   | `yarn build`                 | -           |
-| Serve production build | `yarn serve`                 | -           |
-| Check formatting       | `yarn check:all:format`      | All files   |
-| Fix formatting         | `yarn fix:all:format`        | All files   |
-| Check conventions      | `yarn check:all:convention`  | All files   |
-| Fix conventions        | `yarn fix:all:convention`    | All files   |
-| Check staged files     | `yarn check:staged`          | Staged only |
-| Fix staged files       | `yarn fix:staged:convention` | Staged only |
-| Clean build files      | `yarn clean`                 | -           |
+The full command reference (dev, build, serve, quality checks) lives in **AGENTS.md**. The quality-related commands used throughout this guide are:
+
+| Task               | Command                        | Scope       |
+| ------------------ | ------------------------------ | ----------- |
+| Check formatting   | `npm run check:all:format`     | All files   |
+| Fix formatting     | `npm run fix:all:format`       | All files   |
+| Check conventions  | `npm run check:all:convention` | All files   |
+| Fix conventions    | `npm run fix:all:convention`   | All files   |
+| Check staged files | `npm run check:staged`         | Staged only |
+| Fix staged files   | `npm run fix:staged`           | Staged only |
+| Clean build files  | `npm run clean`                | -           |
 
 ## Git Workflow
 
@@ -96,7 +93,7 @@ git commit -m "Your message"
 
 # If checks FAIL:
 # Option 1: Fix staged files automatically
-yarn fix:staged:convention
+npm run fix:staged
 
 # Option 2: Fix manually and re-stage
 # ... make fixes ...
@@ -117,7 +114,7 @@ git commit -m "Your message"
 - `.lintstagedrc.json` - Lint-staged configuration (check only)
 - `.lintstagedrc.fix.json` - Lint-staged configuration (check and fix)
 - `.husky/pre-commit` - Pre-commit hook script
-- `yarn.lock` - Yarn dependency lock file
+- `package-lock.json` - npm dependency lock file
 
 ### Modified Files
 
@@ -127,14 +124,14 @@ git commit -m "Your message"
 
 ### Removed Files
 
-- `package-lock.json` - Replaced with yarn.lock
+- `yarn.lock` - Replaced with package-lock.json
 
 ## Benefits
 
 ✅ **Consistent Code Style** - Everyone's code looks the same
 ✅ **Catch Errors Early** - ESLint finds issues before runtime
 ✅ **No Auto-Fixes on Commit** - You control when fixes are applied
-✅ **Manual Fix Option** - `yarn fix:staged:convention` to fix only staged files
+✅ **Manual Fix Option** - `npm run fix:staged` to fix only staged files
 ✅ **Quality Enforcement** - Can't commit code with issues
 ✅ **Fast Checks** - Only checks files you changed
 ✅ **Better Collaboration** - No more style arguments in PRs

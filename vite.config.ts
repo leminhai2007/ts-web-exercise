@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/PWA.md, docs/BACKEND_API.md, docs/SECURITY.md
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -60,13 +61,15 @@ export default defineConfig({
         },
     },
     build: {
-        // Minification using esbuild (fast and built-in)
-        minify: 'esbuild',
+        // Minification using oxc (Rolldown default, fast and built-in)
+        minify: 'oxc',
         // Split code into smaller chunks for better caching
         rollupOptions: {
             output: {
-                manualChunks: {
-                    vendor: ['react', 'react-dom', 'react-router-dom'],
+                manualChunks: id => {
+                    if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router-dom/')) {
+                        return 'vendor';
+                    }
                 },
             },
         },

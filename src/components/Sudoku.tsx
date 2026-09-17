@@ -3,6 +3,8 @@
  *
  * A fully-featured implementation of the classic Sudoku puzzle game with API integration.
  *
+ * Related docs (update if this component changes): AGENTS.md, docs/NEW_PROJECT_TEMPLATE.md, docs/BACKEND_API.md, docs/STYLES.md
+ *
  * OVERVIEW:
  * Integrates with the You Do Sudoku API (https://www.youdosudoku.com/) to generate puzzles.
  * Provides complete gaming experience with validation, note-taking, difficulty levels, and
@@ -23,7 +25,7 @@
  * - Difficulty chip moved from AppBar to main page
  * - Note Mode toggle on same line as difficulty chip
  * - Button reorganization: New Game, Give Up (row 1); Reset, Save, Load (row 2)
- * - New Game icon changed to AddCircleOutline
+ * - New Game icon changed to AddCircleOutlined
  * - Loading dialog with spinning animation
  * - All controls disabled during puzzle generation
  * - Save/Load with custom names and timestamps
@@ -378,7 +380,7 @@ import {
 import {
     GridOn as SudokuIcon,
     Refresh as RefreshIcon,
-    AddCircleOutline as NewGameIcon,
+    AddCircleOutlined as NewGameIcon,
     Flag as SuicideIcon,
     EditNote as NoteIcon,
     BorderColor as NumberIcon,
@@ -696,6 +698,11 @@ export const Sudoku = () => {
             newUserInput[row][col] = num;
             setUserInput(newUserInput);
 
+            // Clear saves when the puzzle is completed
+            if (newUserInput.every((row, r) => row.every((cell, c) => cell === solution[r][c]))) {
+                setSavedGames([]);
+            }
+
             // Clear notes for this cell
             const key = `${row}-${col}`;
             const newNotes = { ...notes };
@@ -825,16 +832,6 @@ export const Sudoku = () => {
         return userInput.every((row, r) => row.every((cell, c) => cell === solution[r][c]));
     };
 
-    // Clear saves when game is completed
-    useEffect(() => {
-        if (puzzle.length > 0 && !gameGivenUp) {
-            const solved = userInput.every((row, r) => row.every((cell, c) => cell === solution[r][c]));
-            if (solved) {
-                setSavedGames([]);
-            }
-        }
-    }, [userInput, puzzle, solution, gameGivenUp]);
-
     const getRemainingNumbers = (): Map<number, number> => {
         const counts = new Map<number, number>();
 
@@ -885,9 +882,9 @@ export const Sudoku = () => {
             </Box>
 
             {/* Controls */}
-            <Stack spacing={2} sx={{ mb: 3 }} alignItems="center">
+            <Stack spacing={2} sx={{ mb: 3, alignItems: 'center' }}>
                 {/* First Row: New Game and Give Up */}
-                <Stack direction="row" spacing={1} justifyContent="center">
+                <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
                     <Button
                         variant="contained"
                         startIcon={<NewGameIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
@@ -924,7 +921,7 @@ export const Sudoku = () => {
                 </Stack>
 
                 {/* Second Row: Reset, Save, Load */}
-                <Stack direction="row" spacing={1} justifyContent="center">
+                <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
                     <Button
                         variant="outlined"
                         startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
@@ -1157,7 +1154,7 @@ export const Sudoku = () => {
                     <Typography variant="h6" gutterBottom>
                         No puzzle loaded
                     </Typography>
-                    <Typography color="text.secondary" paragraph>
+                    <Typography color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                         Click "New Game" to start playing
                     </Typography>
                     <Button variant="contained" onClick={() => generateNewGame(difficulty)} startIcon={<RefreshIcon />}>
@@ -1167,7 +1164,7 @@ export const Sudoku = () => {
             )}
 
             {/* Loading Dialog */}
-            <Dialog open={loading} maxWidth="xs" fullWidth disableEscapeKeyDown>
+            <Dialog open={loading} maxWidth="xs" fullWidth>
                 <DialogContent sx={{ textAlign: 'center', py: 4 }}>
                     <Box sx={{ mb: 2 }}>
                         <Box

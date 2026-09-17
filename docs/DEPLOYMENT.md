@@ -50,9 +50,9 @@ This guide covers how to deploy your application to the internet for free.
     - Click "Import"
     - **Build Settings** (Vercel auto-detects, but verify):
         - Framework Preset: `Vite`
-        - Build Command: `yarn build`
+        - Build Command: `npm run build`
         - Output Directory: `dist`
-        - Install Command: `yarn install`
+        - Install Command: `npm install`
     - Click "Deploy"
 
 3. **Wait for Deployment** (usually 1-2 minutes)
@@ -68,7 +68,7 @@ This guide covers how to deploy your application to the internet for free.
 1. **Install Vercel CLI**
 
     ```bash
-    yarn global add vercel
+    npm install -g vercel
     ```
 
 2. **Login to Vercel**
@@ -134,7 +134,7 @@ This guide covers how to deploy your application to the internet for free.
 3. Click "Add new site" → "Import an existing project"
 4. Choose GitHub → Select `ts-web-exercise`
 5. Build settings:
-    - Build command: `yarn build`
+    - Build command: `npm run build`
     - Publish directory: `dist`
 6. Click "Deploy site"
 
@@ -142,10 +142,10 @@ This guide covers how to deploy your application to the internet for free.
 
 ```bash
 # Install Netlify CLI
-yarn global add netlify-cli
+npm install -g netlify-cli
 
 # Build
-yarn build
+npm run build
 
 # Login
 netlify login
@@ -166,7 +166,7 @@ netlify deploy --prod --dir=dist
 1. **Install gh-pages**
 
     ```bash
-    yarn add -D gh-pages
+    npm install -D gh-pages
     ```
 
 2. **Update package.json**
@@ -176,7 +176,7 @@ netlify deploy --prod --dir=dist
     {
         "homepage": "https://leminhai2007.github.io/ts-web-exercise",
         "scripts": {
-            "predeploy": "yarn build",
+            "predeploy": "npm run build",
             "deploy": "gh-pages -d dist"
         }
     }
@@ -218,7 +218,7 @@ netlify deploy --prod --dir=dist
 4. **Deploy**
 
     ```bash
-    yarn deploy
+    npm run deploy
     ```
 
 5. **Enable GitHub Pages**
@@ -241,7 +241,7 @@ netlify deploy --prod --dir=dist
 4. Connect to GitHub
 5. Select `ts-web-exercise` repository
 6. Build settings:
-    - Build command: `yarn build`
+    - Build command: `npm run build`
     - Build output directory: `dist`
 7. Click "Save and Deploy"
 
@@ -258,7 +258,7 @@ netlify deploy --prod --dir=dist
 3. Click "New +" → "Static Site"
 4. Connect repository: `ts-web-exercise`
 5. Settings:
-    - Build Command: `yarn build`
+    - Build Command: `npm run build`
     - Publish Directory: `dist`
 6. Click "Create Static Site"
 
@@ -280,7 +280,7 @@ netlify deploy --prod --dir=dist
 
 ### Build Fails
 
-- Check that `yarn build` works locally first
+- Check that `npm run build` works locally first
 - Verify all dependencies are in `package.json`
 - Check build logs for specific errors
 

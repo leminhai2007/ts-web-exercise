@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/PWA.md (service worker)
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';

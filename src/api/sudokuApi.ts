@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/BACKEND_API.md
 export interface SudokuResponse {
     difficulty: string;
     puzzle: string;
@@ -42,7 +43,7 @@ export const generateSudoku = async (difficulty: DifficultyLevel = 'easy'): Prom
     } catch (error) {
         console.error('Failed to generate Sudoku:', error);
         if (error instanceof TypeError && error.message.includes('fetch')) {
-            throw new Error('Network error. Please check your internet connection.');
+            throw new Error('Network error. Please check your internet connection.', { cause: error });
         }
         throw error instanceof Error ? error : new Error('Failed to generate Sudoku puzzle. Please try again.');
     }

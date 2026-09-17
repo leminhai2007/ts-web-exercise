@@ -2,47 +2,24 @@
 
 ## Overview
 
-This project uses **Material-UI (MUI)** as its primary UI framework. All components are styled using MUI's comprehensive component library and theming system, replacing traditional CSS files with a modern, component-based styling approach.
+This project uses **Material-UI (MUI)** as its primary UI framework. All components are styled using MUI's component library and theming system. **There are no CSS files in this repo** — everything is styled through the global theme and the `sx` prop.
 
-## Shared Layout Components
-
-### ProjectLayout Component
-
-A consistent layout template used across all project pages (Game2048, Sudoku, Lucky Wheel) to ensure uniform styling.
-
-**Location:** `src/components/ProjectLayout.tsx`
-
-**Features:**
-
-- Standardized AppBar with back button, icon, and title
-- Consistent typography (h6 variant, 1.1rem on mobile, 1.25rem on desktop, weight 600)
-- Configurable action buttons (separate for desktop/mobile)
-- Responsive container with configurable max width and padding
-- Primary color AppBar with sticky positioning
-
-**Props:**
-
-- `title`: Page title displayed in AppBar
-- `icon`: Icon displayed next to title
-- `actions`: Action buttons for desktop
-- `mobileActions`: Action buttons for mobile (optional, defaults to `actions`)
-- `maxWidth`: Container max width ('xs' | 'sm' | 'md' | 'lg' | 'xl' | false)
-- `containerPadding`: Custom padding object
-- `backgroundColor`: Background color for container area
-
-**Usage Example:**
+The `sx` prop accepts theme-aware values and responsive breakpoint objects:
 
 ```tsx
-<ProjectLayout title="Game Title" icon={<GameIcon />} maxWidth="sm" actions={<Button>New Game</Button>}>
-    {/* Page content */}
-</ProjectLayout>
+// Theme color tokens
+sx={{ color: 'primary.main', bgcolor: 'background.default' }}
+
+// Theme spacing (8px base): padding 16px, margin 24px
+sx={{ p: 2, m: 3 }}
+
+// Responsive values per breakpoint
+sx={{ fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' }, p: { xs: 2, md: 4 } }}
 ```
 
-## Structure
+## Theme Configuration
 
-### Theme Configuration
-
-The application uses a centralized theme defined in `src/App.tsx`:
+The global theme is defined once in `src/App.tsx` (do not create another `ThemeProvider`):
 
 ```tsx
 const theme = createTheme({
@@ -68,120 +45,42 @@ const theme = createTheme({
 });
 ```
 
-### Component Architecture
+Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `background.default`, `background.paper`, `text.primary`, `text.secondary`, `error.main`, `divider`.
 
-All components use MUI components:
+## Shared Layout (ProjectLayout)
 
-- **HomePage**: `AppBar`, `Toolbar`, `TextField`, `Chip`, `Card`, `CardContent`, `CardActionArea`
-- **Game2048**: `Paper`, `Dialog`, `DialogTitle`, `DialogContent`, `DialogActions`, `Button`, `IconButton`
-- **Sudoku**: `AppBar`, `Toolbar`, `Container`, `Paper`, `Button`, `Dialog`, `Snackbar`, `Alert`
-- **LuckyWheel**: `AppBar`, `Container`, `Paper`, `Button`, `IconButton`, `Dialog`, `TextField`, `Stack`, `List`, `Snackbar`, `Alert`
+All pages are wrapped in `ProjectLayout` (`src/components/ProjectLayout.tsx`). It renders:
 
-## Design System
-
-### Material-UI Theme System
-
-All design tokens are managed through the MUI theme:
-
-#### Key Theme Properties:
-
-- **Colors**: Defined in `palette` (primary, secondary, error, warning, info, success)
-- **Spacing**: MUI's 8px-based spacing system using `theme.spacing()`
-- **Typography**: Responsive typography variants (h1-h6, body1, body2, button, etc.)
-- **Shape**: Global border radius configuration
-- **Breakpoints**: Built-in responsive breakpoints (xs, sm, md, lg, xl)
-- **Shadows**: Elevation system (0-24)
-
-### Styling Approaches
-
-#### 1. MUI's `sx` Prop (Recommended)
+- Sticky AppBar with a back-to-home button, title (`h6`, weight 600), and icon
+- `actions` (desktop AppBar buttons) and `mobileActions` (mobile icon-only buttons)
+- Responsive `Container` with configurable `maxWidth` and `containerPadding`
 
 ```tsx
-<Box
-    sx={{
-        bgcolor: 'background.paper',
-        p: 3,
-        borderRadius: 2,
-        boxShadow: 3,
-    }}
->
-    Content
-</Box>
+<ProjectLayout title="Game Title" icon={<GameIcon />} maxWidth="sm" actions={desktopActions} mobileActions={mobileActions}>
+    {/* Page content */}
+</ProjectLayout>
 ```
 
-#### 2. Theme Access
+## Common UI Patterns
+
+### Responsive Buttons (icon + text desktop, icon-only mobile)
 
 ```tsx
-// Colors from theme
-sx={{ color: 'primary.main', bgcolor: 'background.default' }}
-
-// Spacing from theme
-sx={{ p: 2, m: 3 }} // padding: 16px, margin: 24px
-
-// Responsive styles
-sx={{
-    fontSize: { xs: '0.875rem', sm: '1rem', md: '1.125rem' },
-    p: { xs: 2, md: 4 }
-}}
+<Button variant="contained" startIcon={<ActionIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />} sx={{ minWidth: 'auto', px: { xs: 1.5, sm: 2 } }}>
+    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Action</Box>
+    <ActionIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+</Button>
 ```
 
-## Benefits of Material-UI
-
-✅ **Consistent Design** - Follows Material Design guidelines
-✅ **Responsive by Default** - Built-in breakpoint system
-✅ **Accessible** - ARIA attributes and keyboard navigation included
-✅ **Customizable** - Extensive theming capabilities
-✅ **Production Ready** - Battle-tested components
-✅ **Type Safe** - Full TypeScript support
-✅ **Icon Library** - Comprehensive `@mui/icons-material` package
-✅ **No CSS Files** - Component-based styling eliminates CSS conflicts
-
-## Usage
-
-### Importing Components
+### Button Variants
 
 ```tsx
-import { Box, Button, Typography, Paper } from '@mui/material';
-import { Home as HomeIcon } from '@mui/icons-material';
+<Button variant="contained">Primary Action</Button>
+<Button variant="outlined">Secondary Action</Button>
+<Button variant="text">Tertiary Action</Button>
 ```
 
-### Using Theme Provider
-
-```tsx
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-
-function App() {
-    return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {/* Your components */}
-        </ThemeProvider>
-    );
-}
-```
-
-### Responsive Design
-
-```tsx
-// Responsive grid using Box
-<Box
-    sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-            xs: '1fr', // Mobile: 1 column
-            sm: 'repeat(2, 1fr)', // Tablet: 2 columns
-            md: 'repeat(3, 1fr)', // Desktop: 3 columns
-        },
-        gap: 3,
-    }}
->
-    {/* Grid items */}
-</Box>
-```
-
-### Common Patterns
-
-#### Card Component
+### Card
 
 ```tsx
 <Card elevation={2}>
@@ -194,81 +93,11 @@ function App() {
 </Card>
 ```
 
-#### Button Variants
+### Dialog (forms / confirmations)
 
 ```tsx
-<Button variant="contained">Primary Action</Button>
-<Button variant="outlined">Secondary Action</Button>
-<Button variant="text">Tertiary Action</Button>
-```
-
-## Customization
-
-### Extending the Theme
-
-To add custom theme values, update `App.tsx`:
-
-```tsx
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#your-color',
-        },
-    },
-    components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    textTransform: 'none', // Disable uppercase
-                },
-            },
-        },
-    },
-});
-```
-
-## Component-Specific Styling
-
-### AppBar Pattern (Consistent Across All Components)
-
-```tsx
-<AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-    <Toolbar>
-        <IconButton component={Link} to="/" sx={{ mr: 2, color: 'text.primary' }}>
-            <ArrowBackIcon />
-        </IconButton>
-        <ComponentIcon sx={{ mr: 1, color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ flexGrow: 1, color: 'text.primary' }}>
-            Component Name
-        </Typography>
-    </Toolbar>
-</AppBar>
-```
-
-### Responsive Button Pattern
-
-```tsx
-// Desktop: Icon + Text, Mobile: Icon Only
-<Button
-  startIcon={<ActionIcon />}
-  onClick={handleAction}
-  sx={{ display: isMobile ? 'none' : 'flex' }}
->
-  Action Text
-</Button>
-<IconButton
-  onClick={handleAction}
-  sx={{ display: isMobile ? 'flex' : 'none', color: 'text.primary' }}
->
-  <ActionIcon />
-</IconButton>
-```
-
-### Dialog Pattern
-
-```tsx
-<Dialog open={showDialog} onClose={handleClose} maxWidth="sm" fullWidth>
-    <DialogTitle>Dialog Title</DialogTitle>
+<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <DialogTitle>Title</DialogTitle>
     <DialogContent>
         <Typography variant="body2" color="text.secondary" gutterBottom>
             Instructions or description
@@ -284,12 +113,75 @@ const theme = createTheme({
 </Dialog>
 ```
 
-### Snackbar Notification Pattern
+### Snackbar + Alert (user feedback)
 
 ```tsx
-<Snackbar open={showNotification} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+<Snackbar open={open} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
     <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
         Action completed successfully!
     </Alert>
 </Snackbar>
 ```
+
+Severity values: `'success' | 'error' | 'info'`.
+
+## Responsive Design
+
+MUI uses a mobile-first breakpoint system:
+
+| Breakpoint | Width   | Target        |
+| ---------- | ------- | ------------- |
+| `xs`       | 0px     | Phones        |
+| `sm`       | 600px   | Tablets       |
+| `md`       | 900px   | Small laptops |
+| `lg`       | 1200px  | Desktops      |
+| `xl`       | 1536px+ | Large screens |
+
+### Responsive Grid
+
+```tsx
+<Box
+    sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+        gap: 3,
+    }}
+>
+    {/* Grid items */}
+</Box>
+```
+
+### Responsive Typography
+
+```tsx
+<Typography sx={{ fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' } }}>
+```
+
+### Conditional Display (hide/show per breakpoint)
+
+```tsx
+<Box sx={{ display: { xs: 'none', sm: 'flex' } }}>...</Box>
+```
+
+### Responsive Spacing
+
+```tsx
+<Stack spacing={{ xs: 1, sm: 2, md: 3 }}>
+<Container maxWidth="lg"> {/* Responsive max-width */}
+<Container maxWidth={false}> {/* Full width */}
+```
+
+### Touch & Accessibility
+
+- MUI components are touch-friendly (ripple, focus states) and keyboard-navigable by default
+- Aim for touch targets of at least 44x44px (IconButtons/Buttons meet this by default)
+- Keep the viewport meta tag as-is: `width=device-width, initial-scale=1.0` with user scaling allowed
+- Test at least: small phone (`xs`), tablet (`sm`/`md`), and desktop (`lg`+); portrait and landscape
+
+## Resources
+
+- [MUI Breakpoints](https://mui.com/material-ui/customization/breakpoints/)
+- [MUI sx Prop](https://mui.com/system/getting-started/the-sx-prop/)
+- [MUI Accessibility](https://mui.com/material-ui/guides/accessibility/)
+
+For repo-wide conventions, commands, and the browser verification checklist, see **AGENTS.md**. For how to build a new page, see **docs/NEW_PROJECT_TEMPLATE.md**.

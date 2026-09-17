@@ -4,5 +4,4 @@ build
 coverage
 .git
 *.lock
-yarn.lock
 package-lock.json

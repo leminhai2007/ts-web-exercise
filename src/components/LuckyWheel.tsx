@@ -3,6 +3,8 @@
  *
  * An interactive decision-making tool with customizable spinning wheels for making random choices.
  *
+ * Related docs (update if this component changes): AGENTS.md, docs/NEW_PROJECT_TEMPLATE.md, docs/STYLES.md, docs/LUCKY_WHEEL_KNOWN_ISSUES.md
+ *
  * OVERVIEW:
  * Built with Material UI following the project's design system. Users can spin the wheel, customize
  * items, save favorite wheels, and share them via URL.
@@ -188,57 +190,56 @@ import type { WheelItem, SavedWheel } from '../types/LuckyWheel';
 
 const DEFAULT_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'];
 
+const DEFAULT_ITEMS: WheelItem[] = [
+    { id: '1', text: 'Yes', color: DEFAULT_COLORS[0] },
+    { id: '2', text: 'No', color: DEFAULT_COLORS[1] },
+];
+
+const loadStoredWheels = (): SavedWheel[] => {
+    try {
+        const saved = localStorage.getItem('luckyWheels');
+        return saved ? (JSON.parse(saved) as SavedWheel[]) : [];
+    } catch (error) {
+        console.error('Failed to parse saved wheels:', error);
+        return [];
+    }
+};
+
+const loadSharedItems = (): WheelItem[] | null => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedItems = params.get('items');
+    if (!sharedItems) return null;
+    try {
+        const decodedItems = decodeURIComponent(sharedItems);
+        const itemsList = decodedItems.split('|').filter(item => item.trim());
+        if (itemsList.length === 0) return null;
+        return itemsList.map((text, index) => ({
+            id: String(index + 1),
+            text: text.trim(),
+            color: DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+        }));
+    } catch (error) {
+        console.error('Error loading shared wheel:', error);
+        return null;
+    }
+};
+
 export const LuckyWheel = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    const [items, setItems] = useState<WheelItem[]>([
-        { id: '1', text: 'Yes', color: DEFAULT_COLORS[0] },
-        { id: '2', text: 'No', color: DEFAULT_COLORS[1] },
-    ]);
+    const [items, setItems] = useState<WheelItem[]>(() => loadSharedItems() ?? DEFAULT_ITEMS);
     const [isSpinning, setIsSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [result, setResult] = useState<string | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editText, setEditText] = useState('');
-    const [savedWheels, setSavedWheels] = useState<SavedWheel[]>([]);
+    const [savedWheels, setSavedWheels] = useState<SavedWheel[]>(loadStoredWheels);
     const [showSavedWheels, setShowSavedWheels] = useState(false);
     const [wheelName, setWheelName] = useState('');
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showCopySnackbar, setShowCopySnackbar] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    const loadSavedWheels = useCallback(() => {
-        const saved = localStorage.getItem('luckyWheels');
-        if (saved) {
-            setSavedWheels(JSON.parse(saved));
-        }
-    }, []);
-
-    const checkForSharedWheel = useCallback(() => {
-        const params = new URLSearchParams(window.location.search);
-        const sharedItems = params.get('items');
-
-        if (sharedItems) {
-            try {
-                const decodedItems = decodeURIComponent(sharedItems);
-                const itemsList = decodedItems.split('|').filter(item => item.trim());
-
-                if (itemsList.length > 0) {
-                    const newItems: WheelItem[] = itemsList.map((text, index) => ({
-                        id: String(index + 1),
-                        text: text.trim(),
-                        color: DEFAULT_COLORS[index % DEFAULT_COLORS.length],
-                    }));
-                    setItems(newItems);
-                }
-
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } catch (error) {
-                console.error('Error loading shared wheel:', error);
-            }
-        }
-    }, []);
 
     const drawWheel = useCallback(() => {
         const canvas = canvasRef.current;
@@ -330,9 +331,10 @@ export const LuckyWheel = () => {
     }, [items, rotation, theme.palette.primary.main]);
 
     useEffect(() => {
-        loadSavedWheels();
-        checkForSharedWheel();
-    }, [loadSavedWheels, checkForSharedWheel]);
+        if (window.location.search.includes('items=')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
 
     useEffect(() => {
         drawWheel();

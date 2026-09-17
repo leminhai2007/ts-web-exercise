@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md, docs/STYLES.md (part of the Sudoku page)
 import { Box, Paper } from '@mui/material';
 
 interface CellNote {

@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/BACKEND_API.md, docs/SECURITY.md
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';

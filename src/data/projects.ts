@@ -1,3 +1,4 @@
+// Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md (project registration)
 import type { Project } from '../types/Project';
 
 export const projects: Project[] = [
@@ -21,13 +22,6 @@ export const projects: Project[] = [
         description: 'Spin the wheel of fortune! Make decisions with a customizable lucky wheel. Save and share your wheels.',
         categories: ['tool', 'random'],
         path: '/lucky-wheel',
-    },
-    {
-        id: 'tetris',
-        name: 'Tetris',
-        description: 'Classic Tetris game. Stack blocks and clear lines! Desktop: arrow keys, Mobile: touch controls.',
-        categories: ['game', 'puzzle'],
-        path: '/tetris',
     },
     {
         id: 'flash-cards',

@@ -92,7 +92,7 @@ react({
 
 To verify the code works correctly:
 
-1. Run `yarn dev`
+1. Run `npm run dev`
 2. Navigate to `/lucky-wheel`
 3. Click "Spin the Wheel!"
 4. Observe smooth animation and random results
