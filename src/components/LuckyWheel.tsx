@@ -45,10 +45,13 @@
  *    - Displays creation date and item count
  *
  * 5. Share Wheels
- *    - Generate shareable links with URL parameters
+ *    - Generate shareable links with a compressed URL parameter
+ *    - Items are compacted with lz-string (base64-like URI-safe output) so
+ *      even large wheels produce short URLs that chat apps won't truncate
  *    - Automatic clipboard copy with success notification
  *    - Clean URLs after loading (params removed)
  *    - Recipients can spin, edit, and save shared wheels
+ *    - Legacy links using the uncompressed ?items= format still load
  *
  * 6. Responsive Design
  *    - Canvas-based wheel rendering
@@ -104,14 +107,14 @@
  *
  * handleShareWheel(): URL sharing
  * - Joins item texts with pipe separator
- * - Builds URL with query parameter
- * - URL encodes special characters
+ * - Compresses the payload with lz-string compressToEncodedURIComponent
+ * - Builds URL with ?wheel= query parameter
  * - Copies to clipboard
  * - Shows success notification
  *
  * checkForSharedWheel(): Loading from URL
  * - Parses URL parameters on mount
- * - Decodes and splits items
+ * - Decompresses ?wheel= or reads legacy ?items= and splits items
  * - Validates and creates WheelItems
  * - Cleans URL after loading
  * - Error handling for malformed URLs
@@ -131,7 +134,8 @@
  * - Text truncation with pixel-width measurement
  * - requestAnimationFrame for smooth 60fps animation
  * - localStorage for saving wheels
- * - URL parameters with pipe-separated values
+ * - lz-string compression for compact share URLs (?wheel= param)
+ * - Loads legacy uncompressed ?items= param for backward compatibility
  * - Clipboard API for sharing
  *
  * BROWSER COMPATIBILITY:
@@ -185,6 +189,7 @@ import {
     Delete as DeleteIcon,
     EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { ProjectLayout } from './ProjectLayout';
 import type { WheelItem, SavedWheel } from '../types/LuckyWheel';
 
@@ -207,21 +212,16 @@ const loadStoredWheels = (): SavedWheel[] => {
 
 const loadSharedItems = (): WheelItem[] | null => {
     const params = new URLSearchParams(window.location.search);
-    const sharedItems = params.get('items');
-    if (!sharedItems) return null;
-    try {
-        const decodedItems = decodeURIComponent(sharedItems);
-        const itemsList = decodedItems.split('|').filter(item => item.trim());
-        if (itemsList.length === 0) return null;
-        return itemsList.map((text, index) => ({
-            id: String(index + 1),
-            text: text.trim(),
-            color: DEFAULT_COLORS[index % DEFAULT_COLORS.length],
-        }));
-    } catch (error) {
-        console.error('Error loading shared wheel:', error);
-        return null;
-    }
+    const compressed = params.get('wheel');
+    const decodedItems = compressed ? decompressFromEncodedURIComponent(compressed) : params.get('items');
+    if (!decodedItems) return null;
+    const itemsList = decodedItems.split('|').filter(item => item.trim());
+    if (itemsList.length === 0) return null;
+    return itemsList.map((text, index) => ({
+        id: String(index + 1),
+        text: text.trim(),
+        color: DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+    }));
 };
 
 export const LuckyWheel = () => {
@@ -331,7 +331,7 @@ export const LuckyWheel = () => {
     }, [items, rotation, theme.palette.primary.main]);
 
     useEffect(() => {
-        if (window.location.search.includes('items=')) {
+        if (window.location.search.includes('wheel=') || window.location.search.includes('items=')) {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, []);
@@ -482,7 +482,8 @@ export const LuckyWheel = () => {
 
     const handleShareWheel = () => {
         const itemsParam = items.map(item => item.text).join('|');
-        const url = `${window.location.origin}${window.location.pathname}?items=${encodeURIComponent(itemsParam)}`;
+        const compressed = compressToEncodedURIComponent(itemsParam);
+        const url = `${window.location.origin}${window.location.pathname}?wheel=${encodeURIComponent(compressed)}`;
 
         navigator.clipboard.writeText(url);
         setShowCopySnackbar(true);
