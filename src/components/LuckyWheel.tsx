@@ -180,15 +180,7 @@ import {
     Snackbar,
     Alert,
 } from '@mui/material';
-import {
-    Casino as WheelIcon,
-    Edit as EditIcon,
-    FolderOpen as FolderIcon,
-    Share as ShareIcon,
-    Save as SaveIcon,
-    Delete as DeleteIcon,
-    EmojiEvents as TrophyIcon,
-} from '@mui/icons-material';
+import { WheelIcon, EditIcon, FolderIcon, ShareIcon, SaveIcon, DeleteIcon, TrophyIcon } from './AppIcons';
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { ProjectLayout } from './ProjectLayout';
 import type { WheelItem, SavedWheel } from '../types/LuckyWheel';
@@ -199,6 +191,9 @@ const DEFAULT_ITEMS: WheelItem[] = [
     { id: '1', text: 'Yes', color: DEFAULT_COLORS[0] },
     { id: '2', text: 'No', color: DEFAULT_COLORS[1] },
 ];
+
+const CONTENT_FONT = '"VT323", "Courier New", monospace';
+const CONTENT_FONT_READY = '16px "VT323"';
 
 const loadStoredWheels = (): SavedWheel[] => {
     try {
@@ -239,7 +234,21 @@ export const LuckyWheel = () => {
     const [wheelName, setWheelName] = useState('');
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showCopySnackbar, setShowCopySnackbar] = useState(false);
+    const [wheelFontReady, setWheelFontReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        let active = true;
+        document.fonts
+            .load(CONTENT_FONT_READY)
+            .then(() => {
+                if (active) setWheelFontReady(true);
+            })
+            .catch(() => undefined);
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const drawWheel = useCallback(() => {
         const canvas = canvasRef.current;
@@ -277,7 +286,7 @@ export const LuckyWheel = () => {
             ctx.rotate(startAngle + sliceAngle / 2);
             ctx.textAlign = 'center';
             ctx.fillStyle = '#fff';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = `bold 16px ${wheelFontReady ? CONTENT_FONT : 'monospace'}`;
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             ctx.shadowBlur = 3;
 
@@ -345,7 +354,7 @@ export const LuckyWheel = () => {
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
-    }, [items, rotation, theme.palette.primary.main]);
+    }, [items, rotation, theme.palette.primary.main, wheelFontReady]);
 
     useEffect(() => {
         if (window.location.search.includes('wheel=') || window.location.search.includes('items=')) {
@@ -519,7 +528,7 @@ export const LuckyWheel = () => {
                 </Button>
             }
             mobileActions={
-                <IconButton onClick={handleShareWheel} color="inherit">
+                <IconButton onClick={handleShareWheel} color="inherit" aria-label="Share wheel">
                     <ShareIcon />
                 </IconButton>
             }
@@ -529,21 +538,21 @@ export const LuckyWheel = () => {
                 <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit} sx={{ display: isMobile ? 'none' : 'flex' }}>
                     Edit
                 </Button>
-                <IconButton onClick={handleEdit} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
+                <IconButton onClick={handleEdit} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary" aria-label="Edit wheel">
                     <EditIcon />
                 </IconButton>
 
                 <Button variant="outlined" startIcon={<SaveIcon />} onClick={openSaveDialog} sx={{ display: isMobile ? 'none' : 'flex' }}>
                     Save
                 </Button>
-                <IconButton onClick={openSaveDialog} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
+                <IconButton onClick={openSaveDialog} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary" aria-label="Save wheel">
                     <SaveIcon />
                 </IconButton>
 
                 <Button variant="outlined" startIcon={<FolderIcon />} onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'none' : 'flex' }}>
                     Load
                 </Button>
-                <IconButton onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary">
+                <IconButton onClick={() => setShowSavedWheels(true)} sx={{ display: isMobile ? 'flex' : 'none' }} color="primary" aria-label="Load wheel">
                     <FolderIcon />
                 </IconButton>
             </Stack>
@@ -609,7 +618,7 @@ export const LuckyWheel = () => {
             <Dialog open={!!result} onClose={() => setResult(null)} maxWidth="xs" fullWidth>
                 <DialogContent sx={{ textAlign: 'center', py: 4 }}>
                     <TrophyIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', fontFamily: CONTENT_FONT, fontSize: '1.5rem' }}>
                         {result}
                     </Typography>
                 </DialogContent>

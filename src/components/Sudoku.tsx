@@ -377,18 +377,7 @@ import {
     ListItemSecondaryAction,
     IconButton,
 } from '@mui/material';
-import {
-    GridOn as SudokuIcon,
-    Refresh as RefreshIcon,
-    AddCircleOutlined as NewGameIcon,
-    Flag as SuicideIcon,
-    EditNote as NoteIcon,
-    BorderColor as NumberIcon,
-    RestartAlt as ResetIcon,
-    Save as SaveIcon,
-    FolderOpen as LoadIcon,
-    Delete as DeleteIcon,
-} from '@mui/icons-material';
+import { SudokuIcon, RefreshIcon, NewGameIcon, SuicideIcon, NoteIcon, NumberIcon, ResetIcon, SaveIcon, LoadIcon, DeleteIcon } from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 import { generateSudoku, parsePuzzle } from '../api/sudokuApi';
 import type { DifficultyLevel } from '../api/sudokuApi';
@@ -869,7 +858,7 @@ export const Sudoku = () => {
                     size="medium"
                     sx={{ fontWeight: 600, fontSize: '0.9rem' }}
                 />
-                <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} size="small" disabled={loading}>
+                <ToggleButtonGroup value={noteMode} exclusive onChange={(_, value) => value !== null && setNoteMode(value)} disabled={loading}>
                     <ToggleButton value={false}>
                         <NumberIcon sx={{ mr: { xs: 0, sm: 1 } }} />
                         <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Number</Box>
@@ -884,89 +873,113 @@ export const Sudoku = () => {
             {/* Controls */}
             <Stack spacing={2} sx={{ mb: 3, alignItems: 'center' }}>
                 {/* First Row: New Game and Give Up */}
-                <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
+                <Stack direction="row" spacing={{ xs: 2, sm: 1 }} sx={{ justifyContent: 'center' }}>
                     <Button
                         variant="contained"
-                        startIcon={<NewGameIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        startIcon={<NewGameIcon />}
                         onClick={handleNewGame}
                         disabled={loading}
                         sx={{
+                            display: { xs: 'none', sm: 'flex' },
                             bgcolor: 'primary.main',
                             color: 'white',
-                            minWidth: { xs: 'auto', sm: 'auto' },
-                            px: { xs: 1.5, sm: 2 },
                             '&:hover': {
                                 bgcolor: 'primary.dark',
                             },
                         }}
                     >
-                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>New Game</Box>
-                        <NewGameIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        New Game
                     </Button>
+                    <IconButton onClick={handleNewGame} disabled={loading} color="primary" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="New game">
+                        <NewGameIcon />
+                    </IconButton>
 
                     <Button
                         variant="outlined"
-                        startIcon={<SuicideIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        startIcon={<SuicideIcon />}
                         onClick={() => setConfirmDialogOpen(true)}
                         disabled={loading || gameGivenUp}
                         color="error"
-                        sx={{
-                            minWidth: { xs: 'auto', sm: 'auto' },
-                            px: { xs: 1.5, sm: 2 },
-                        }}
+                        sx={{ display: { xs: 'none', sm: 'flex' } }}
                     >
-                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Give Up</Box>
-                        <SuicideIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        Give Up
                     </Button>
+                    <IconButton
+                        onClick={() => setConfirmDialogOpen(true)}
+                        disabled={loading || gameGivenUp}
+                        color="error"
+                        sx={{ display: { xs: 'flex', sm: 'none' } }}
+                        aria-label="Give up"
+                    >
+                        <SuicideIcon />
+                    </IconButton>
                 </Stack>
 
                 {/* Second Row: Reset, Save, Load */}
-                <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
+                <Stack direction="row" spacing={{ xs: 2, sm: 1 }} sx={{ justifyContent: 'center' }}>
                     <Button
                         variant="outlined"
-                        startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        startIcon={<ResetIcon />}
                         onClick={handleResetGame}
                         disabled={loading || gameGivenUp}
                         color="warning"
-                        sx={{
-                            minWidth: { xs: 'auto', sm: 'auto' },
-                            px: { xs: 1.5, sm: 2 },
-                        }}
+                        sx={{ display: { xs: 'none', sm: 'flex' } }}
                     >
-                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Reset</Box>
-                        <ResetIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        Reset
                     </Button>
+                    <IconButton
+                        onClick={handleResetGame}
+                        disabled={loading || gameGivenUp}
+                        color="warning"
+                        sx={{ display: { xs: 'flex', sm: 'none' } }}
+                        aria-label="Reset game"
+                    >
+                        <ResetIcon />
+                    </IconButton>
 
                     <Button
                         variant="outlined"
-                        startIcon={<SaveIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        startIcon={<SaveIcon />}
                         onClick={() => {
                             setSaveName(generateDefaultSaveName());
                             setSaveDialogOpen(true);
                         }}
                         disabled={loading || gameGivenUp}
-                        sx={{
-                            minWidth: { xs: 'auto', sm: 'auto' },
-                            px: { xs: 1.5, sm: 2 },
-                        }}
+                        sx={{ display: { xs: 'none', sm: 'flex' } }}
                     >
-                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Save</Box>
-                        <SaveIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        Save
                     </Button>
+                    <IconButton
+                        onClick={() => {
+                            setSaveName(generateDefaultSaveName());
+                            setSaveDialogOpen(true);
+                        }}
+                        disabled={loading || gameGivenUp}
+                        color="primary"
+                        sx={{ display: { xs: 'flex', sm: 'none' } }}
+                        aria-label="Save game"
+                    >
+                        <SaveIcon />
+                    </IconButton>
 
                     <Button
                         variant="outlined"
-                        startIcon={<LoadIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                        startIcon={<LoadIcon />}
                         onClick={() => setLoadDialogOpen(true)}
                         disabled={loading || gameGivenUp || savedGames.length === 0}
-                        sx={{
-                            minWidth: { xs: 'auto', sm: 'auto' },
-                            px: { xs: 1.5, sm: 2 },
-                        }}
+                        sx={{ display: { xs: 'none', sm: 'flex' } }}
                     >
-                        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Load</Box>
-                        <LoadIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        Load
                     </Button>
+                    <IconButton
+                        onClick={() => setLoadDialogOpen(true)}
+                        disabled={loading || gameGivenUp || savedGames.length === 0}
+                        color="primary"
+                        sx={{ display: { xs: 'flex', sm: 'none' } }}
+                        aria-label="Load game"
+                    >
+                        <LoadIcon />
+                    </IconButton>
                 </Stack>
             </Stack>
 

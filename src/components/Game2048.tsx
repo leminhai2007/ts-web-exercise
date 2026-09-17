@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Chip } from '@mui/material';
-import { SportsEsports as GameIcon, AddCircleOutlined as NewGameIcon, ArrowUpward, ArrowDownward, ArrowBack, ArrowForward } from '@mui/icons-material';
+import { Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Chip } from '@mui/material';
+import { GameIcon, NewGameIcon, ArrowUpward, ArrowDownward, ArrowBack, ArrowForward } from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 
 type Board = number[][];
@@ -300,9 +300,12 @@ export const Game2048 = () => {
                         {score}
                     </Box>
                 </Typography>
-                <Button variant="contained" onClick={resetGame} startIcon={<NewGameIcon />} size="medium">
+                <Button variant="contained" onClick={resetGame} startIcon={<NewGameIcon />} size="medium" sx={{ display: { xs: 'none', sm: 'flex' } }}>
                     New Game
                 </Button>
+                <IconButton onClick={resetGame} color="primary" size="medium" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="New game">
+                    <NewGameIcon />
+                </IconButton>
             </Stack>
             <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: 0, bgcolor: 'background.paper', mx: { xs: 0.5, sm: 0 } }}>
                 <Box

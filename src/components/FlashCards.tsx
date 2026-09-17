@@ -75,22 +75,13 @@ import {
     Chip,
     Tooltip,
 } from '@mui/material';
-import {
-    Add as AddIcon,
-    Shuffle as ShuffleIcon,
-    Casino as RandomIcon,
-    Download as DownloadIcon,
-    Upload as UploadIcon,
-    Delete as DeleteIcon,
-    Edit as EditIcon,
-    Collections as CollectionsIcon,
-    School as SchoolIcon,
-    Close as CloseIcon,
-} from '@mui/icons-material';
+import { AddIcon, ShuffleIcon, RandomIcon, DownloadIcon, UploadIcon, DeleteIcon, EditIcon, CollectionsIcon, SchoolIcon, CloseIcon } from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 import type { FlashCard, FlashCardCollection } from '../types/FlashCard';
 
 const STORAGE_KEY = 'flashcard-collections';
+
+const CONTENT_FONT = '"VT323", "Courier New", monospace';
 
 const loadStoredCollections = (): FlashCardCollection[] => {
     try {
@@ -506,7 +497,7 @@ export const FlashCards = () => {
                                 <Typography variant="overline" sx={{ mb: 2 }}>
                                     Question
                                 </Typography>
-                                <Typography variant="h4" align="center">
+                                <Typography variant="h4" align="center" sx={{ fontFamily: CONTENT_FONT, fontSize: '1.5rem' }}>
                                     {currentCard.label}
                                 </Typography>
                                 <Typography variant="caption" sx={{ mt: 3, opacity: 0.8 }}>
@@ -535,7 +526,7 @@ export const FlashCards = () => {
                                 <Typography variant="overline" sx={{ mb: 2 }}>
                                     Answer
                                 </Typography>
-                                <Typography variant="h5" align="center">
+                                <Typography variant="h5" align="center" sx={{ fontFamily: CONTENT_FONT, fontSize: '1.25rem' }}>
                                     {currentCard.content}
                                 </Typography>
                                 <Typography variant="caption" sx={{ mt: 3, opacity: 0.8 }}>
@@ -576,90 +567,103 @@ export const FlashCards = () => {
                     <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
                         <Button
                             variant="outlined"
-                            startIcon={<CollectionsIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            startIcon={<CollectionsIcon />}
                             onClick={() => setShowCollectionsDialog(true)}
                             disabled={collections.length === 0}
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
+                            sx={{ display: { xs: 'none', sm: 'flex' } }}
                         >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Collections</Box>
-                            <CollectionsIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                            Collections
                         </Button>
+                        <IconButton
+                            onClick={() => setShowCollectionsDialog(true)}
+                            disabled={collections.length === 0}
+                            color="primary"
+                            sx={{ display: { xs: 'flex', sm: 'none' } }}
+                            aria-label="Collections"
+                        >
+                            <CollectionsIcon />
+                        </IconButton>
 
                         <Button
                             variant="outlined"
-                            startIcon={<AddIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            startIcon={<AddIcon />}
                             onClick={() => setShowAddCardsDialog(true)}
                             disabled={!currentCollection}
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
+                            sx={{ display: { xs: 'none', sm: 'flex' } }}
                         >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add Cards</Box>
-                            <AddIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                            Add Cards
                         </Button>
+                        <IconButton
+                            onClick={() => setShowAddCardsDialog(true)}
+                            disabled={!currentCollection}
+                            color="primary"
+                            sx={{ display: { xs: 'flex', sm: 'none' } }}
+                            aria-label="Add cards"
+                        >
+                            <AddIcon />
+                        </IconButton>
 
                         <Button
                             variant="contained"
-                            startIcon={<ShuffleIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            startIcon={<ShuffleIcon />}
                             onClick={handleShuffle}
                             disabled={!currentCollection || currentCollection.cards.length === 0}
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
+                            sx={{ display: { xs: 'none', sm: 'flex' } }}
                         >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Shuffle</Box>
-                            <ShuffleIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                            Shuffle
                         </Button>
+                        <IconButton
+                            onClick={handleShuffle}
+                            disabled={!currentCollection || currentCollection.cards.length === 0}
+                            color="primary"
+                            sx={{ display: { xs: 'flex', sm: 'none' } }}
+                            aria-label="Shuffle"
+                        >
+                            <ShuffleIcon />
+                        </IconButton>
 
                         <Button
                             variant="contained"
-                            startIcon={<RandomIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            startIcon={<RandomIcon />}
                             onClick={handleRandomCard}
                             disabled={!currentCollection || currentCollection.cards.length === 0}
                             color="secondary"
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
+                            sx={{ display: { xs: 'none', sm: 'flex' } }}
                         >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Random</Box>
-                            <RandomIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                            Random
                         </Button>
+                        <IconButton
+                            onClick={handleRandomCard}
+                            disabled={!currentCollection || currentCollection.cards.length === 0}
+                            color="secondary"
+                            sx={{ display: { xs: 'flex', sm: 'none' } }}
+                            aria-label="Random card"
+                        >
+                            <RandomIcon />
+                        </IconButton>
                     </Stack>
 
                     {/* Second Row: Export, Import */}
                     <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
                         <Button
                             variant="outlined"
-                            startIcon={<DownloadIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+                            startIcon={<DownloadIcon />}
                             onClick={handleExport}
                             disabled={!currentCollection}
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
+                            sx={{ display: { xs: 'none', sm: 'flex' } }}
                         >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Export</Box>
-                            <DownloadIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                            Export
                         </Button>
+                        <IconButton onClick={handleExport} disabled={!currentCollection} color="primary" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="Export">
+                            <DownloadIcon />
+                        </IconButton>
 
-                        <Button
-                            variant="outlined"
-                            startIcon={<UploadIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-                            onClick={() => fileInputRef.current?.click()}
-                            sx={{
-                                minWidth: { xs: 'auto', sm: 'auto' },
-                                px: { xs: 1.5, sm: 2 },
-                            }}
-                        >
-                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Import</Box>
-                            <UploadIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+                        <Button variant="outlined" startIcon={<UploadIcon />} onClick={() => fileInputRef.current?.click()} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+                            Import
                         </Button>
+                        <IconButton onClick={() => fileInputRef.current?.click()} color="primary" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="Import">
+                            <UploadIcon />
+                        </IconButton>
                     </Stack>
                 </Stack>
             )}
@@ -673,7 +677,7 @@ export const FlashCards = () => {
                     <Typography color="text.secondary" sx={{ mb: 3 }}>
                         Create your first flash card collection or import an existing one
                     </Typography>
-                    <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'center', alignItems: 'center' }}>
                         <Button variant="contained" size="large" startIcon={<AddIcon />} onClick={() => setShowNewCollectionDialog(true)}>
                             Create Collection
                         </Button>
@@ -694,7 +698,7 @@ export const FlashCards = () => {
                     <Paper sx={{ p: 3, mb: 3 }}>
                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                             <Box>
-                                <Typography variant="h5" gutterBottom>
+                                <Typography variant="h5" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.5rem' }}>
                                     {currentCollection.name}
                                 </Typography>
                                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -704,7 +708,12 @@ export const FlashCards = () => {
                                     </Typography>
                                 </Stack>
                             </Box>
-                            <Stack direction="row" spacing={1}>
+                            <Stack
+                                direction="row"
+                                spacing={1}
+                                useFlexGap
+                                sx={{ flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-end' }, width: { xs: '100%', sm: 'auto' } }}
+                            >
                                 <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setShowAddCardsDialog(true)}>
                                     Add Cards
                                 </Button>
@@ -734,7 +743,7 @@ export const FlashCards = () => {
                                     <CardContent>
                                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <Box sx={{ flex: 1 }}>
-                                                <Typography variant="h6" gutterBottom>
+                                                <Typography variant="h6" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.15rem' }}>
                                                     {card.label}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">

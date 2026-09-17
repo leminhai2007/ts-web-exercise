@@ -51,13 +51,7 @@ import {
     ListItemText,
     IconButton,
 } from '@mui/material';
-import {
-    DataUsage as DataManagerIcon,
-    FileDownload as ExportIcon,
-    FileUpload as ImportIcon,
-    Refresh as RefreshIcon,
-    Language as LanguageIcon,
-} from '@mui/icons-material';
+import { DataManagerIcon, ExportIcon, ImportIcon, RefreshIcon, LanguageIcon } from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 import { BACKUP_FORMAT, BACKUP_VERSION } from '../types/DataManager';
 import type { BackupFile } from '../types/DataManager';

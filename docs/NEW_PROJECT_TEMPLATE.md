@@ -130,13 +130,18 @@ export const Xxx = () => {
     - Keep `maxWidth` default (`md`) unless a narrower layout is clearly better (e.g. games use `sm`).
 2. **Header JSDoc block** describing the component (`Game2048.tsx` and `FlashCards.tsx` are good
    scale references). Document OVERVIEW, KEY FEATURES, and STORAGE at minimum.
-3. **Responsive buttons**: desktop shows icon + text, mobile shows icon only, using the pattern:
+3. **Responsive buttons**: desktop shows a text button, mobile shows a bare `IconButton` (no box),
+   matching the Lucky Wheel page. Render both and toggle them with the breakpoint `display`:
     ```tsx
-    <Button startIcon={<Icon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />} sx={{ minWidth: 'auto', px: { xs: 1.5, sm: 2 } }}>
-        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Label</Box>
-        <Icon sx={{ display: { xs: 'block', sm: 'none' } }} />
+    <Button variant="outlined" startIcon={<Icon />} onClick={handleAction} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+        Label
     </Button>
+    <IconButton onClick={handleAction} color="primary" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="Label">
+        <Icon />
+    </IconButton>
     ```
+    Keep the mobile icon buttons in a centered `Stack direction="row"` with `spacing={{ xs: 2, sm: 1 }}`,
+    and always give the `IconButton` an `aria-label`.
 4. **Notification feedback**: use a `Snackbar` + `Alert` with `severity: 'success' | 'error' | 'info'`,
    `autoHideDuration={3000}`, anchored `vertical: 'bottom', horizontal: 'center'`. All user actions
    should notify (created / deleted / invalid input, etc.).
@@ -163,12 +168,15 @@ export const Xxx = () => {
 
 ```tsx
 // src/data/projects.ts - add an entry to the projects array
+import { XxxIcon } from '../components/AppIcons';
+// ...
 {
     id: 'xxx',                 // matches route path, kebab-case
     name: 'Xxx Name',
     description: 'One-line description shown on the Home page card.',
     categories: ['tool' | 'game', ...], // use existing categories or add a new one
     path: '/xxx',
+    icon: XxxIcon,             // logo shown on the Home page card (must exist in ./AppIcons)
 }
 ```
 

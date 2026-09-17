@@ -255,7 +255,7 @@ const theme = createTheme({
                 root: ({ theme }) => ({
                     borderRadius: 0,
                     fontFamily: fontPixel,
-                    fontSize: '0.6rem',
+                    fontSize: '0.68rem',
                     letterSpacing: 0.5,
                     borderColor: theme.palette.divider,
                     color: theme.palette.text.secondary,

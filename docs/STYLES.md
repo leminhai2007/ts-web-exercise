@@ -47,6 +47,7 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 
 - **Press Start 2P** — headings (`h1`–`h6`), buttons, chips, overlines. Never bold it (`fontWeight: 400`); it has a single weight and faux-bold looks wrong.
 - **VT323** — body, captions, inputs, lists. Google Fonts link lives in `index.html`; Prettier/ESLint ignore it.
+- **User-generated text must use VT323** (the body stack `'"VT323", "Courier New", monospace'`), never Press Start 2P. Press Start 2P has no Vietnamese glyphs, so Vietnamese diacritics fall back per-glyph and the word renders in mixed fonts ("weird" look). Apply the VT323 stack to any text the user can enter — flash-card collection names/labels/content, wheel item text (including canvas `ctx.font`) and wheel results. Canvas text must also wait for the webfont via `document.fonts.load('16px "VT323"')` and redraw once loaded.
 
 ### Theme component overrides (arcade look)
 
@@ -86,14 +87,58 @@ All pages are wrapped in `ProjectLayout` (`src/components/ProjectLayout.tsx`). I
 
 ## Common UI Patterns
 
-### Responsive Buttons (icon + text desktop, icon-only mobile)
+### Responsive Buttons (icon + text desktop, bare icon mobile)
+
+The standard project control bar renders a text Button on desktop and a plain `IconButton`
+(no outline/box, matching the Lucky Wheel page) on mobile. Both actions share the same handler,
+disabled state and semantic color:
 
 ```tsx
-<Button variant="contained" startIcon={<ActionIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />} sx={{ minWidth: 'auto', px: { xs: 1.5, sm: 2 } }}>
-    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Action</Box>
-    <ActionIcon sx={{ display: { xs: 'block', sm: 'none' } }} />
+<Button
+    variant="outlined"
+    startIcon={<ActionIcon />}
+    onClick={handleAction}
+    disabled={isDisabled}
+    color="primary"
+    sx={{ display: { xs: 'none', sm: 'flex' } }}
+>
+    Action
 </Button>
+<IconButton
+    onClick={handleAction}
+    disabled={isDisabled}
+    color="primary"
+    sx={{ display: { xs: 'flex', sm: 'none' } }}
+    aria-label="Action"
+>
+    <ActionIcon />
+</IconButton>
 ```
+
+Always add an `aria-label` to the mobile `IconButton` (the text label is hidden there). Keep the
+mobile `IconButton`s in a centered `Stack direction="row"` and use a comfortable spacing
+(`spacing={{ xs: 2, sm: 1 }}`).
+
+The same idea applies to status **Chips** (e.g. the Home "Online/Offline" chip): keep the text on
+desktop, hide only the label on mobile and center the icon in a fixed-width chip:
+
+```tsx
+<Chip
+    icon={<CloudIcon />}
+    label="Online"
+    size="small"
+    aria-label="Online"
+    sx={{
+        '& .MuiChip-label': { display: { xs: 'none', sm: 'block' } },
+        '& > span:first-of-type': { ml: { xs: 0, sm: '5px' } },
+        minWidth: { xs: 32, sm: 'auto' },
+        justifyContent: 'center',
+    }}
+/>
+```
+
+Because `AppIcons` render a wrapper `<span>` and do not forward MUI's `className`, the chip icon
+spacing must target that wrapper (`& > span:first-of-type`); `.MuiChip-icon` never matches.
 
 ### Button Variants
 
@@ -116,6 +161,52 @@ All pages are wrapped in `ProjectLayout` (`src/components/ProjectLayout.tsx`). I
 </Card>
 ```
 
+### Home project card (logo + tag footer)
+
+Home page cards render each project's `icon` (from `AppIcons`) in a 44×44 `primary.main` badge
+above the title, and the category chips live in a footer pinned to the card's bottom. To pin the
+footer, make `CardActionArea` a flex column and give `CardContent` `flex: 1` so `mt: 'auto'` has
+space to distribute (a plain `height: '100%'` on CardActionArea resolves to content height):
+
+```tsx
+<CardActionArea component={Link} to={path} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <CardContent sx={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5, pr: 6 }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 44,
+                    height: 44,
+                    flexShrink: 0,
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                }}
+            >
+                <project.icon fontSize={26} />
+            </Box>
+            <Typography variant="h6" component="h2" sx={{ fontFamily: '"Press Start 2P", "VT323", "Courier New", monospace', fontSize: '0.85rem', lineHeight: 1.9 }}>
+                {project.name}
+            </Typography>
+        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {project.description}
+        </Typography>
+        <Box sx={{ mt: 'auto', pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                {project.categories.map(cat => (
+                    <Chip key={cat} label={cat} size="small" variant="outlined" />
+                ))}
+            </Stack>
+        </Box>
+    </CardContent>
+</CardActionArea>
+```
+
+The header keeps `pr: 6` so the absolutely-positioned star button never overlaps the title; the
+description keeps `mb: 2` so the tag footer is always separated from it on content-sized rows.
+
 ### Favorite / star button overlay
 
 Project cards on the Home page have a star (`StarIcon` / `StarBorderIcon`) icon button in the
@@ -123,8 +214,8 @@ card's top-right corner. Use the same pattern for any favoritable card:
 
 ```tsx
 <Card sx={{ position: 'relative' }}>
-    <CardActionArea component={Link} to={path} sx={{ height: '100%' }}>
-        <CardContent>{/* title, description, chips */}</CardContent>
+    <CardActionArea component={Link} to={path} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <CardContent sx={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>{/* title, description, chips */}</CardContent>
     </CardActionArea>
     <IconButton
         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -143,6 +234,24 @@ card's top-right corner. Use the same pattern for any favoritable card:
 Favorites persist in `localStorage` (key `favoriteProjects`, an ordered array of project ids — the
 earliest favorited id comes first). Home ordering rule: favorites first (by selection order),
 then the remaining projects alphabetically by name, with **Data Manager always pinned last**.
+
+### App icons (Font Awesome)
+
+Buttons and page headers use the game-style icon set in `src/components/AppIcons.tsx`, built on
+**Font Awesome Solid** (bold, filled, chunky shapes that fit the retro theme). Icons are sized in px
+(as vectors, no icon font) so they work inside MUI buttons, icon buttons, chips and snackbars. The
+export names mirror the identifiers previously imported from `@mui/icons-material`, so swapping is 1:1:
+
+```tsx
+import { SaveIcon, FolderIcon, ShareIcon, DeleteIcon } from './AppIcons';
+```
+
+Keep new button icons in this set: pick a solid Font Awesome icon, add it to `AppIcons.tsx` (opts:
+`icon` definition + optional pixel size via `fontSize`/`sx`), name the export to match the page's
+alias, and import it from `./AppIcons` instead of `@mui/icons-material`. Avoid raw `<img>`/emoji
+icons, which break the chunky UI look. Packages: `@fortawesome/fontawesome-svg-core`,
+`@fortawesome/free-solid-svg-icons`, `@fortawesome/free-regular-svg-icons`,
+`@fortawesome/react-fontawesome`.
 
 ### Dialog (forms / confirmations)
 

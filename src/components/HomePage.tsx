@@ -26,14 +26,7 @@ import {
     Alert,
     Tooltip,
 } from '@mui/material';
-import {
-    Home as HomeIcon,
-    CloudQueue as CloudIcon,
-    CloudOff as CloudOffIcon,
-    GetApp as GetAppIcon,
-    Star as StarIcon,
-    StarBorder as StarBorderIcon,
-} from '@mui/icons-material';
+import { HomeIcon, CloudIcon, CloudOffIcon, GetAppIcon, StarIcon, StarBorderIcon } from './AppIcons';
 import { projects } from '../data/projects';
 
 const FAVORITES_KEY = 'favoriteProjects';
@@ -168,6 +161,13 @@ export const HomePage = () => {
                             label={isOnline ? 'Online' : 'Offline'}
                             color={isOnline ? 'success' : 'default'}
                             size="small"
+                            aria-label={isOnline ? 'Online' : 'Offline'}
+                            sx={{
+                                '& .MuiChip-label': { display: { xs: 'none', sm: 'block' } },
+                                '& > span:first-of-type': { ml: { xs: 0, sm: '5px' } },
+                                minWidth: { xs: 32, sm: 'auto' },
+                                justifyContent: 'center',
+                            }}
                         />
                         {isInstallable && (
                             <Button variant="contained" color="secondary" startIcon={<GetAppIcon />} onClick={handleInstallClick} size="small">
@@ -230,29 +230,46 @@ export const HomePage = () => {
                                         '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 },
                                     }}
                                 >
-                                    <CardActionArea component={Link} to={project.path} sx={{ height: '100%' }}>
-                                        <CardContent>
-                                            <Typography
-                                                variant="h6"
-                                                component="h2"
-                                                gutterBottom
-                                                sx={{
-                                                    fontWeight: 400,
-                                                    fontFamily: '"Press Start 2P", "VT323", "Courier New", monospace',
-                                                    fontSize: '0.85rem',
-                                                    lineHeight: 1.9,
-                                                }}
-                                            >
-                                                {project.name}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary" sx={{ display: 'block' }}>
+                                    <CardActionArea component={Link} to={project.path} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                        <CardContent sx={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                                            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5, pr: 6 }}>
+                                                <Box
+                                                    sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        width: 44,
+                                                        height: 44,
+                                                        flexShrink: 0,
+                                                        bgcolor: 'primary.main',
+                                                        color: 'primary.contrastText',
+                                                    }}
+                                                >
+                                                    <project.icon fontSize={26} />
+                                                </Box>
+                                                <Typography
+                                                    variant="h6"
+                                                    component="h2"
+                                                    sx={{
+                                                        fontWeight: 400,
+                                                        fontFamily: '"Press Start 2P", "VT323", "Courier New", monospace',
+                                                        fontSize: '0.85rem',
+                                                        lineHeight: 1.9,
+                                                    }}
+                                                >
+                                                    {project.name}
+                                                </Typography>
+                                            </Stack>
+                                            <Typography variant="body2" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
                                                 {project.description}
                                             </Typography>
-                                            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                                                {project.categories.map(cat => (
-                                                    <Chip key={cat} label={cat} size="small" variant="outlined" />
-                                                ))}
-                                            </Stack>
+                                            <Box sx={{ mt: 'auto', pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                                                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                                                    {project.categories.map(cat => (
+                                                        <Chip key={cat} label={cat} size="small" variant="outlined" />
+                                                    ))}
+                                                </Stack>
+                                            </Box>
                                         </CardContent>
                                     </CardActionArea>
                                     <Tooltip title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>

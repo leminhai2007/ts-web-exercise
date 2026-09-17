@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Container, AppBar, Toolbar, IconButton, Typography } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { ArrowBackIcon } from './AppIcons';
 
 interface ProjectLayoutProps {
     /** The title to display in the AppBar */
