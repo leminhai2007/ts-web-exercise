@@ -125,6 +125,22 @@ const BACKUP_PROJECTS: BackupProjectDef[] = [
             return `${collections.length} collection(s), ${totalCards} card(s)`;
         },
     },
+    {
+        id: 'habit-tracker',
+        name: 'Habit Tracker',
+        description: 'Tracked habits, streaks and earned badges.',
+        behavior: 'override',
+        storageKeys: ['habit-tracker-habits'],
+        summarize: (data: Record<string, unknown>) => {
+            const habits = data['habit-tracker-habits'] as unknown[] | undefined;
+            if (!Array.isArray(habits)) return 'No saved habits';
+            const totalStreaks = habits.reduce<number>((sum, habit) => {
+                const streak = (habit as { streak?: number }).streak;
+                return sum + (typeof streak === 'number' ? streak : 0);
+            }, 0);
+            return `${habits.length} habit(s), ${totalStreaks} total day streak`;
+        },
+    },
 ];
 
 const readStoredData = (keys: string[]): Record<string, unknown> => {

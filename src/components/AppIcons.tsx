@@ -32,6 +32,7 @@ import {
     faHouse,
     faLanguage,
     faLayerGroup,
+    faMedal,
     faPencil,
     faPen,
     faPlus,
@@ -112,6 +113,9 @@ const LanguageIcon = (props: IconProps) => <AppIcon icon={faLanguage} {...props}
 // Sudoku modes
 const NoteIcon = (props: IconProps) => <AppIcon icon={faPencil} {...props} />;
 const NumberIcon = (props: IconProps) => <AppIcon icon={faCalculator} {...props} />;
+
+// Habit Tracker
+export const MedalIcon = (props: IconProps) => <AppIcon icon={faMedal} {...props} />;
 
 // Aliases matching each page's imported identifiers (swapped from @mui/icons-material 1:1)
 export const NewGameIcon = (props: IconProps) => <AppIcon icon={faPlus} {...props} />;

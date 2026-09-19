@@ -1,6 +1,6 @@
 // Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md (project registration)
 import type { Project } from '../types/Project';
-import { DataManagerIcon, GameIcon, SchoolIcon, SudokuIcon, WheelIcon } from '../components/AppIcons';
+import { DataManagerIcon, GameIcon, MedalIcon, SchoolIcon, SudokuIcon, WheelIcon } from '../components/AppIcons';
 
 export const projects: Project[] = [
     {
@@ -42,6 +42,14 @@ export const projects: Project[] = [
         categories: ['tool', 'data'],
         path: '/data-manager',
         icon: DataManagerIcon,
+    },
+    {
+        id: 'habit-tracker',
+        name: 'Habit Tracker',
+        description: 'Build daily habits or avoidance streaks and level up by earning badges across five ranks.',
+        categories: ['tool', 'lifestyle'],
+        path: '/habit-tracker',
+        icon: MedalIcon,
     },
     // Add more projects here as you build them
 ];

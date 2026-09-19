@@ -7,6 +7,7 @@ import { Sudoku } from './components/Sudoku';
 import { LuckyWheel } from './components/LuckyWheel';
 import { FlashCards } from './components/FlashCards';
 import { DataManager } from './components/DataManager';
+import { HabitTracker } from './components/HabitTracker';
 
 const fontPixel = '"Press Start 2P", "VT323", "Courier New", monospace';
 const fontBody = '"VT323", "Courier New", monospace';
@@ -305,6 +306,7 @@ function App() {
                     <Route path="/lucky-wheel" element={<LuckyWheel />} />
                     <Route path="/flash-cards" element={<FlashCards />} />
                     <Route path="/data-manager" element={<DataManager />} />
+                    <Route path="/habit-tracker" element={<HabitTracker />} />
                 </Routes>
             </Router>
         </ThemeProvider>
