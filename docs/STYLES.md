@@ -75,7 +75,9 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 
 `src/components/AnimatedBackground.tsx` renders a fixed, full-viewport background using
 `src/assets/background.jpg` on **every** page (mounted once in `App.tsx` next to the `<Router>`).
-The image layer is `140vw` wide and pans horizontally with a CSS keyframe
+The layer is sized with explicit `100vw`/`100vh` and the image itself uses `background-size: cover`,
+so it fills the screen at any image size or viewport aspect (edges are cropped, never letterboxed).
+A `140vw`-wide image plane pans horizontally with a CSS keyframe
 (`translateX(0)` ↔ `translateX(-40vw)`, 60s `ease-in-out` `alternate` infinite) so it moves from
 left to right and back — there is **no vertical translation**. Key railings:
 
