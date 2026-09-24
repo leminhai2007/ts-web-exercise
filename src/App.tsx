@@ -8,6 +8,7 @@ import { LuckyWheel } from './components/LuckyWheel';
 import { FlashCards } from './components/FlashCards';
 import { DataManager } from './components/DataManager';
 import { HabitTracker } from './components/HabitTracker';
+import { PomodoroClock } from './components/PomodoroClock';
 import { AnimatedBackground } from './components/AnimatedBackground';
 
 const fontPixel = '"Press Start 2P", "VT323", "Courier New", monospace';
@@ -309,6 +310,7 @@ function App() {
                     <Route path="/flash-cards" element={<FlashCards />} />
                     <Route path="/data-manager" element={<DataManager />} />
                     <Route path="/habit-tracker" element={<HabitTracker />} />
+                    <Route path="/pomodoro-clock" element={<PomodoroClock />} />
                 </Routes>
             </Router>
         </ThemeProvider>

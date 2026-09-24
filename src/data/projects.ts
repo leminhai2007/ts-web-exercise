@@ -1,6 +1,6 @@
 // Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md (project registration)
 import type { Project } from '../types/Project';
-import { DataManagerIcon, GameIcon, MedalIcon, SchoolIcon, SudokuIcon, WheelIcon } from '../components/AppIcons';
+import { DataManagerIcon, GameIcon, MedalIcon, SchoolIcon, SudokuIcon, TimerIcon, WheelIcon } from '../components/AppIcons';
 
 export const projects: Project[] = [
     {
@@ -50,6 +50,14 @@ export const projects: Project[] = [
         categories: ['tool', 'lifestyle'],
         path: '/habit-tracker',
         icon: MedalIcon,
+    },
+    {
+        id: 'pomodoro-clock',
+        name: 'Pomodoro Clock',
+        description: 'Customizable countdown timer with multi-round, multi-phase counters, alarms and notifications.',
+        categories: ['tool', 'lifestyle'],
+        path: '/pomodoro-clock',
+        icon: TimerIcon,
     },
     // Add more projects here as you build them
 ];

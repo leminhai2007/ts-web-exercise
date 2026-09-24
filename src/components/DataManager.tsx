@@ -19,13 +19,13 @@
  *    restore. The recorded origin is surfaced prominently so users can confirm a domain move.
  * 3. Override on conflict - 2048 and Sudoku replace their saved state; if the target origin already
  *    has data the user is asked to confirm before overwriting (and can skip individual projects).
- * 4. Merge on conflict - Lucky Wheel and Flash Cards append imported entries to existing data so
- *    nothing is lost; imported ids are regenerated to avoid collisions.
+ * 4. Merge on conflict - Lucky Wheel, Flash Cards and Pomodoro Clock append imported entries to
+ *    existing data so nothing is lost; imported ids are regenerated to avoid collisions.
  *
  * STORAGE:
  * - This page keeps no data of its own; it reads and writes the same localStorage keys used by the
  *   other projects (game2048_state, sudoku_state, sudoku_saved_games, luckyWheels,
- *   flashcard-collections).
+ *   flashcard-collections, habit-tracker-habits, pomodoro-counters).
  * - Backup files are JSON and record the origin they were exported from.
  */
 
@@ -57,6 +57,7 @@ import { BACKUP_FORMAT, BACKUP_VERSION } from '../types/DataManager';
 import type { BackupFile } from '../types/DataManager';
 import type { SavedWheel } from '../types/LuckyWheel';
 import type { FlashCardCollection } from '../types/FlashCard';
+import type { PomodoroCounter } from '../types/Pomodoro';
 
 interface BackupProjectDef {
     id: string;
@@ -139,6 +140,17 @@ const BACKUP_PROJECTS: BackupProjectDef[] = [
                 return sum + (typeof streak === 'number' ? streak : 0);
             }, 0);
             return `${habits.length} habit(s), ${totalStreaks} total day streak`;
+        },
+    },
+    {
+        id: 'pomodoro-clock',
+        name: 'Pomodoro Clock',
+        description: 'Saved timer counters with phases and rounds.',
+        behavior: 'merge',
+        storageKeys: ['pomodoro-counters'],
+        summarize: (data: Record<string, unknown>) => {
+            const counters = data['pomodoro-counters'] as unknown[] | undefined;
+            return Array.isArray(counters) && counters.length > 0 ? `${counters.length} counter(s)` : 'No saved counters';
         },
     },
 ];
@@ -230,6 +242,24 @@ const mergeFlashCards = (existing: FlashCardCollection[], imported: FlashCardCol
         };
     });
     return [...existing, ...newCollections];
+};
+
+const mergePomodoroCounters = (existing: PomodoroCounter[], imported: PomodoroCounter[]): PomodoroCounter[] => {
+    const suffix = Date.now().toString(36);
+    const newCounters = imported.map((counter, index) => {
+        const id = `counter-${suffix}-${index}`;
+        return {
+            ...counter,
+            id,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            phases: counter.phases.map((phase, phaseIndex) => ({
+                ...phase,
+                id: `${id}-phase-${phaseIndex}`,
+            })),
+        };
+    });
+    return [...existing, ...newCounters];
 };
 
 const downloadBlob = (blob: Blob, fileName: string): void => {
@@ -418,6 +448,13 @@ export const DataManager = () => {
                 if (Array.isArray(imported) && imported.length > 0) {
                     const existing = readStoredArray('flashcard-collections') as FlashCardCollection[];
                     localStorage.setItem('flashcard-collections', JSON.stringify(mergeFlashCards(existing, imported as FlashCardCollection[])));
+                    mergedCount++;
+                }
+            } else if (id === 'pomodoro-clock') {
+                const imported = project['pomodoro-counters'];
+                if (Array.isArray(imported) && imported.length > 0) {
+                    const existing = readStoredArray('pomodoro-counters') as PomodoroCounter[];
+                    localStorage.setItem('pomodoro-counters', JSON.stringify(mergePomodoroCounters(existing, imported as PomodoroCounter[])));
                     mergedCount++;
                 }
             }

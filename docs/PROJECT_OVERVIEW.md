@@ -11,6 +11,7 @@ A web application built with React, TypeScript, and Vite that hosts multiple too
 - **Sudoku**: Sudoku puzzle game with multiple difficulty levels
 - **Lucky Wheel**: Interactive decision-making wheel with sharing capabilities
 - **Flash Cards**: Create and study flash card collections with export/import
+- **Pomodoro Clock**: Customizable countdown timer with multi-round, multi-phase counters, repeating alarm and push notifications
 - **Responsive Design**: Works on desktop and mobile devices
 - **Progressive Web App**: Install on your device for offline access
 - **Easy to Extend**: Add new projects by updating the projects data file

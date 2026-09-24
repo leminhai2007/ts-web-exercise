@@ -16,9 +16,11 @@ import {
     faArrowRight,
     faArrowUp,
     faArrowsRotate,
+    faBell,
     faCalculator,
     faCloud,
     faCloudRain,
+    faCopy,
     faDatabase,
     faDharmachakra,
     faDice,
@@ -34,12 +36,16 @@ import {
     faLayerGroup,
     faMagnifyingGlass,
     faMedal,
+    faPause,
     faPencil,
     faPen,
+    faPlay,
     faPlus,
     faShareNodes,
     faShuffle,
     faStar,
+    faStop,
+    faStopwatch,
     faTrash,
     faTrophy,
     faUpload,
@@ -100,6 +106,14 @@ const GameIcon = (props: IconProps) => <AppIcon icon={faGamepad} {...props} />;
 // Media / status
 const CloudIcon = (props: IconProps) => <AppIcon icon={faCloud} {...props} />;
 const CloudOffIcon = (props: IconProps) => <AppIcon icon={faCloudRain} {...props} />;
+const TimerIcon = (props: IconProps) => <AppIcon icon={faStopwatch} {...props} />;
+const CopyIcon = (props: IconProps) => <AppIcon icon={faCopy} {...props} />;
+const BellIcon = (props: IconProps) => <AppIcon icon={faBell} {...props} />;
+
+// Playback
+const PlayIcon = (props: IconProps) => <AppIcon icon={faPlay} {...props} />;
+const PauseIcon = (props: IconProps) => <AppIcon icon={faPause} {...props} />;
+const StopIcon = (props: IconProps) => <AppIcon icon={faStop} {...props} />;
 
 // Search
 const SearchIcon = (props: IconProps) => <AppIcon icon={faMagnifyingGlass} {...props} />;
@@ -152,6 +166,12 @@ export {
     GameIcon,
     CloudIcon,
     CloudOffIcon,
+    TimerIcon,
+    CopyIcon,
+    BellIcon,
+    PlayIcon,
+    PauseIcon,
+    StopIcon,
     SearchIcon,
     StarIcon,
     StarBorderIcon,
