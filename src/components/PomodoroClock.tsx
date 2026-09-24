@@ -718,7 +718,7 @@ export const PomodoroClock = () => {
                                 <Typography
                                     variant="body2"
                                     color="text.secondary"
-                                    sx={{ maxWidth: '80%', whiteSpace: 'normal', overflowWrap: 'anywhere', lineHeight: 1.15, fontSize: '0.78rem' }}
+                                    sx={{ maxWidth: '80%', whiteSpace: 'normal', overflowWrap: 'anywhere', lineHeight: 1.15, fontSize: '0.9rem' }}
                                 >
                                     {step.phaseName}
                                 </Typography>

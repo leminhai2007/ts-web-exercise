@@ -68,9 +68,10 @@ const theme = createTheme({
         h5: { fontFamily: fontPixel, fontWeight: 400, fontSize: '0.95rem', lineHeight: 1.8 },
         h6: { fontFamily: fontPixel, fontWeight: 400, fontSize: '0.8rem', lineHeight: 1.9, letterSpacing: 0.5 },
         button: { fontFamily: fontPixel, fontSize: '0.68rem', letterSpacing: 0.5 },
-        caption: { fontSize: '0.85rem', letterSpacing: 0.5 },
-        overline: { fontFamily: fontPixel, fontSize: '0.62rem', letterSpacing: 1 },
+        caption: { fontSize: '0.95rem', letterSpacing: 0.5 },
+        overline: { fontFamily: fontPixel, fontSize: '0.7rem', letterSpacing: 1 },
         body1: { fontSize: '1.1rem', lineHeight: 1.5 },
+        body2: { fontSize: '1rem', lineHeight: 1.5 },
     },
     shape: {
         borderRadius: 0,

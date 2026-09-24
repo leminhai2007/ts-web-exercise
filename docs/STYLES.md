@@ -47,6 +47,7 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 
 - **Press Start 2P** — headings (`h1`–`h6`), buttons, chips, overlines. Never bold it (`fontWeight: 400`); it has a single weight and faux-bold looks wrong.
 - **VT323** — body, captions, inputs, lists. Google Fonts link lives in `index.html`; Prettier/ESLint ignore it.
+- Body text sizes (theme typography): `body1` = `1.1rem`, `body2` = `1rem`, `caption` = `0.95rem`, `overline` = `0.7rem`. Use these variants for normal/secondary text; add `color="text.secondary"` for muted copy.
 - **User-generated text must use VT323** (the body stack `'"VT323", "Courier New", monospace'`), never Press Start 2P. Press Start 2P has no Vietnamese glyphs, so Vietnamese diacritics fall back per-glyph and the word renders in mixed fonts ("weird" look). Apply the VT323 stack to any text the user can enter — flash-card collection names/labels/content, wheel item text (including canvas `ctx.font`) and wheel results. Canvas text must also wait for the webfont via `document.fonts.load('16px "VT323"')` and redraw once loaded.
 
 ### Theme component overrides (arcade look)

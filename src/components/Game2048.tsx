@@ -352,7 +352,7 @@ export const Game2048 = () => {
             </Paper>
 
             <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 }, borderRadius: 0 }}>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ display: 'block', mb: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ display: 'block', mb: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                     Use arrow keys or swipe to move tiles. Combine tiles with the same number to create larger numbers!
                 </Typography>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ justifyContent: 'center', flexWrap: 'wrap' }}>
