@@ -143,7 +143,7 @@ export const HomePage = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'transparent' }}>
             <AppBar position="static" elevation={0} sx={{ borderBottom: '4px solid', borderColor: 'primary.dark' }}>
                 <Toolbar>
                     <HomeIcon sx={{ mr: 2, color: 'inherit' }} />

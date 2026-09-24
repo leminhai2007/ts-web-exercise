@@ -4,7 +4,7 @@
 
 This project uses **Material-UI (MUI)** as its primary UI framework. All components are styled using MUI's component library and theming system. **There are no CSS files in this repo** — everything is styled through the global theme and the `sx` prop.
 
-The UI follows a **retro game** style inspired by classic Mario games: a bright sky-blue background, saturated red/green/yellow accents, pixel fonts, and sharp (square) corners. Fonts ("Press Start 2P" for headings/buttons, "VT323" for body text) are loaded from Google Fonts via `<link>` tags in `index.html`.
+The UI follows a **retro game** style inspired by classic Mario games: a sky-blue background with an animated background image, saturated red/green/yellow accents, pixel fonts, and sharp (square) corners. Fonts ("Press Start 2P" for headings/buttons, "VT323" for body text) are loaded from Google Fonts via `<link>` tags in `index.html`.
 
 The `sx` prop accepts theme-aware values and responsive breakpoint objects:
 
@@ -59,17 +59,33 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 
 ## Retro Palette Reference
 
-| Token                | Hex       | Use                             |
-| -------------------- | --------- | ------------------------------- |
-| `primary.main`       | `#e52521` | Mario red: AppBar, main buttons |
-| `secondary.main`     | `#43b047` | pipe green (flash card backs)   |
-| `success.main`       | `#43b047` | success feedback / online chip  |
-| `warning.main`       | `#f5aa00` | coin yellow: warnings           |
-| `error.main`         | `#d63031` | errors / danger                 |
-| `info.main`          | `#049cd8` | overalls blue: info notices     |
-| `background.default` | `#7fc4ff` | sky-blue page background        |
-| `background.paper`   | `#ffffff` | cards, dialogs, panels          |
-| `divider`            | `#e9dfc8` | warm cream borders, grid lines  |
+| Token                | Hex       | Use                                              |
+| -------------------- | --------- | ------------------------------------------------ |
+| `primary.main`       | `#e52521` | Mario red: AppBar, main buttons                  |
+| `secondary.main`     | `#43b047` | pipe green (flash card backs)                    |
+| `success.main`       | `#43b047` | success feedback / online chip                   |
+| `warning.main`       | `#f5aa00` | coin yellow: warnings                            |
+| `error.main`         | `#d63031` | errors / danger                                  |
+| `info.main`          | `#049cd8` | overalls blue: info notices                      |
+| `background.default` | `#7fc4ff` | sky-blue fallback behind the animated background |
+| `background.paper`   | `#ffffff` | cards, dialogs, panels                           |
+| `divider`            | `#e9dfc8` | warm cream borders, grid lines                   |
+
+## Animated Background
+
+`src/components/AnimatedBackground.tsx` renders a fixed, full-viewport background using
+`src/assets/background.jpg` on **every** page (mounted once in `App.tsx` next to the `<Router>`).
+The image layer is `140vw` wide and pans horizontally with a CSS keyframe
+(`translateX(0)` ↔ `translateX(-40vw)`, 60s `ease-in-out` `alternate` infinite) so it moves from
+left to right and back — there is **no vertical translation**. Key railings:
+
+- Use `zIndex: -1` so it always sits behind page content; the palette `background.default`
+  (`#7fc4ff`) remains as body/browser fallback.
+- Page containers must stay transparent for the image to show through: `ProjectLayout` defaults to
+  `bgcolor: 'transparent'` (the `backgroundColor` prop still overrides it) and `HomePage` uses
+  `bgcolor: 'transparent'`.
+- Opaque surfaces (Cards, Papers, dialogs, the AppBar) still cover the image where needed, so
+  text stays readable.
 
 ## Shared Layout (ProjectLayout)
 

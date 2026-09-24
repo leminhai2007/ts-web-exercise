@@ -36,7 +36,7 @@ export const ProjectLayout = ({ title, icon, actions, mobileActions, children, m
     const padding = containerPadding || defaultPadding;
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: backgroundColor || 'background.default' }}>
+        <Box sx={{ minHeight: '100vh', bgcolor: backgroundColor || 'transparent' }}>
             {/* App Bar */}
             <AppBar
                 position="sticky"

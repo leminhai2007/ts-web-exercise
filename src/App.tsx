@@ -8,6 +8,7 @@ import { LuckyWheel } from './components/LuckyWheel';
 import { FlashCards } from './components/FlashCards';
 import { DataManager } from './components/DataManager';
 import { HabitTracker } from './components/HabitTracker';
+import { AnimatedBackground } from './components/AnimatedBackground';
 
 const fontPixel = '"Press Start 2P", "VT323", "Courier New", monospace';
 const fontBody = '"VT323", "Courier New", monospace';
@@ -298,6 +299,7 @@ function App() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
+            <AnimatedBackground />
             <Router>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
