@@ -32,6 +32,7 @@ import {
     faHouse,
     faLanguage,
     faLayerGroup,
+    faMagnifyingGlass,
     faMedal,
     faPencil,
     faPen,
@@ -100,6 +101,9 @@ const GameIcon = (props: IconProps) => <AppIcon icon={faGamepad} {...props} />;
 const CloudIcon = (props: IconProps) => <AppIcon icon={faCloud} {...props} />;
 const CloudOffIcon = (props: IconProps) => <AppIcon icon={faCloudRain} {...props} />;
 
+// Search
+const SearchIcon = (props: IconProps) => <AppIcon icon={faMagnifyingGlass} {...props} />;
+
 // Objects / UI
 const StarIcon = (props: IconProps) => <AppIcon icon={faStar} {...props} />;
 const StarBorderIcon = (props: IconProps) => <AppIcon icon={faStarRegular} {...props} />;
@@ -148,6 +152,7 @@ export {
     GameIcon,
     CloudIcon,
     CloudOffIcon,
+    SearchIcon,
     StarIcon,
     StarBorderIcon,
     HomeIcon,

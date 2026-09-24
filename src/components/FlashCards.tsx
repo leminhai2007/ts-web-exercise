@@ -46,11 +46,12 @@
  *
  * STORAGE:
  * - All collections saved to localStorage under key 'flashcard-collections'
+ * - The default collection id is saved under key 'flashcard-default-collection' (defaults to the first collection)
  * - Auto-save on every change
  * - Persists across browser sessions
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
     Box,
     Button,
@@ -74,12 +75,28 @@ import {
     Stack,
     Chip,
     Tooltip,
+    InputAdornment,
 } from '@mui/material';
-import { AddIcon, ShuffleIcon, RandomIcon, DownloadIcon, UploadIcon, DeleteIcon, EditIcon, CollectionsIcon, SchoolIcon, CloseIcon } from './AppIcons';
+import {
+    AddIcon,
+    ShuffleIcon,
+    RandomIcon,
+    DownloadIcon,
+    UploadIcon,
+    DeleteIcon,
+    EditIcon,
+    CollectionsIcon,
+    SchoolIcon,
+    CloseIcon,
+    StarIcon,
+    StarBorderIcon,
+    SearchIcon,
+} from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 import type { FlashCard, FlashCardCollection } from '../types/FlashCard';
 
 const STORAGE_KEY = 'flashcard-collections';
+const DEFAULT_COLLECTION_KEY = 'flashcard-default-collection';
 
 const CONTENT_FONT = '"VT323", "Courier New", monospace';
 
@@ -98,10 +115,25 @@ const loadStoredCollections = (): FlashCardCollection[] => {
 export const FlashCards = () => {
     // State for collections
     const [collections, setCollections] = useState<FlashCardCollection[]>(loadStoredCollections);
+    const [defaultCollectionId, setDefaultCollectionId] = useState<string | null>(() => {
+        try {
+            return localStorage.getItem(DEFAULT_COLLECTION_KEY);
+        } catch {
+            return null;
+        }
+    });
     const [currentCollectionId, setCurrentCollectionId] = useState<string | null>(() => {
         const stored = loadStoredCollections();
-        return stored.length > 0 ? stored[0].id : null;
+        if (stored.length === 0) return null;
+        try {
+            const defaultId = localStorage.getItem(DEFAULT_COLLECTION_KEY);
+            if (stored.some(collection => collection.id === defaultId)) return defaultId;
+        } catch {
+            /* ignore */
+        }
+        return stored[0].id;
     });
+    const [searchTerm, setSearchTerm] = useState('');
 
     // State for dialogs
     const [showNewCollectionDialog, setShowNewCollectionDialog] = useState(false);
@@ -139,8 +171,32 @@ export const FlashCards = () => {
         }
     }, [collections]);
 
+    // The default collection always exists: the stored default if it is still present, else the first collection
+    const effectiveDefaultCollectionId = collections.some(collection => collection.id === defaultCollectionId)
+        ? defaultCollectionId
+        : collections.length > 0
+          ? collections[0].id
+          : null;
+
+    // Persist the effective default collection
+    useEffect(() => {
+        if (effectiveDefaultCollectionId) {
+            localStorage.setItem(DEFAULT_COLLECTION_KEY, effectiveDefaultCollectionId);
+        } else {
+            localStorage.removeItem(DEFAULT_COLLECTION_KEY);
+        }
+    }, [collections, defaultCollectionId, effectiveDefaultCollectionId]);
+
     // Get current collection
     const currentCollection = collections.find(c => c.id === currentCollectionId);
+
+    // Cards filtered by search term (matches label or content, case-insensitive)
+    const filteredCards = useMemo(() => {
+        if (!currentCollection) return [];
+        const query = searchTerm.trim().toLowerCase();
+        if (!query) return currentCollection.cards;
+        return currentCollection.cards.filter(card => card.label.toLowerCase().includes(query) || card.content.toLowerCase().includes(query));
+    }, [currentCollection, searchTerm]);
 
     // Show snackbar notification
     const showNotification = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
@@ -184,8 +240,15 @@ export const FlashCards = () => {
     // Switch collection
     const handleSwitchCollection = (collectionId: string) => {
         setCurrentCollectionId(collectionId);
+        setSearchTerm('');
         setShowCollectionsDialog(false);
         setIsStudyMode(false);
+    };
+
+    // Set default collection
+    const handleSetDefaultCollection = (collectionId: string) => {
+        setDefaultCollectionId(collectionId);
+        showNotification('Default collection updated', 'success');
     };
 
     // Add cards in bulk
@@ -698,9 +761,14 @@ export const FlashCards = () => {
                     <Paper sx={{ p: 3, mb: 3 }}>
                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                             <Box sx={{ width: { xs: '100%', sm: 'auto' }, textAlign: { xs: 'center', sm: 'left' } }}>
-                                <Typography variant="h5" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.5rem' }}>
-                                    {currentCollection.name}
-                                </Typography>
+                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+                                    <Typography variant="h5" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.5rem' }}>
+                                        {currentCollection.name}
+                                    </Typography>
+                                    {effectiveDefaultCollectionId === currentCollection.id && (
+                                        <StarIcon sx={{ color: 'warning.main', fontSize: 18, mb: '0.35em' }} aria-label="Default collection" />
+                                    )}
+                                </Stack>
                                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                                     <Chip label={`${currentCollection.cards.length} card(s)`} size="small" color="primary" />
                                     <Typography variant="caption" color="text.secondary">
@@ -737,36 +805,64 @@ export const FlashCards = () => {
                             </Button>
                         </Box>
                     ) : (
-                        <Stack spacing={2}>
-                            {currentCollection.cards.map(card => (
-                                <Card key={card.id}>
-                                    <CardContent>
-                                        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <Box sx={{ flex: 1 }}>
-                                                <Typography variant="h6" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.15rem' }}>
-                                                    {card.label}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {card.content}
-                                                </Typography>
-                                            </Box>
-                                            <Stack direction="row" spacing={1}>
-                                                <Tooltip title="Edit">
-                                                    <IconButton size="small" onClick={() => handleEditCard(card)}>
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Delete">
-                                                    <IconButton size="small" color="error" onClick={() => handleDeleteCard(card.id)}>
-                                                        <DeleteIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Stack>
-                                        </Stack>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </Stack>
+                        <>
+                            <TextField
+                                fullWidth
+                                placeholder="Search cards by label or content..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                variant="outlined"
+                                size="small"
+                                sx={{ mb: 2 }}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    },
+                                }}
+                            />
+                            {filteredCards.length === 0 ? (
+                                <Box sx={{ textAlign: 'center', py: 8 }}>
+                                    <Typography variant="h6" color="text.secondary">
+                                        No cards match your search
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <Stack spacing={2}>
+                                    {filteredCards.map(card => (
+                                        <Card key={card.id}>
+                                            <CardContent>
+                                                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                    <Box sx={{ flex: 1 }}>
+                                                        <Typography variant="h6" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.15rem' }}>
+                                                            {card.label}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {card.content}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Stack direction="row" spacing={1}>
+                                                        <Tooltip title="Edit">
+                                                            <IconButton size="small" onClick={() => handleEditCard(card)}>
+                                                                <EditIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title="Delete">
+                                                            <IconButton size="small" color="error" onClick={() => handleDeleteCard(card.id)}>
+                                                                <DeleteIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Stack>
+                                                </Stack>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Stack>
+                            )}
+                        </>
                     )}
                 </Box>
             )}
@@ -831,26 +927,41 @@ export const FlashCards = () => {
                 <DialogTitle>My Collections</DialogTitle>
                 <DialogContent sx={{ p: 0 }}>
                     <List>
-                        {collections.map(collection => (
-                            <Box key={collection.id}>
-                                <ListItem
-                                    secondaryAction={
-                                        <IconButton edge="end" onClick={() => handleDeleteCollection(collection.id)} color="error">
-                                            <DeleteIcon />
+                        {collections.map(collection => {
+                            const isDefault = effectiveDefaultCollectionId === collection.id;
+                            return (
+                                <Box key={collection.id}>
+                                    <ListItem
+                                        secondaryAction={
+                                            <IconButton edge="end" onClick={() => handleDeleteCollection(collection.id)} color="error">
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        }
+                                        disablePadding
+                                    >
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => handleSetDefaultCollection(collection.id)}
+                                            aria-label={isDefault ? 'Default collection' : 'Set as default collection'}
+                                            disabled={isDefault}
+                                        >
+                                            {isDefault ? <StarIcon sx={{ color: 'warning.main', fontSize: 16 }} /> : <StarBorderIcon sx={{ fontSize: 16 }} />}
                                         </IconButton>
-                                    }
-                                    disablePadding
-                                >
-                                    <ListItemButton selected={collection.id === currentCollectionId} onClick={() => handleSwitchCollection(collection.id)}>
-                                        <ListItemText
-                                            primary={collection.name}
-                                            secondary={`${collection.cards.length} card(s) • Updated ${new Date(collection.updatedAt).toLocaleDateString()}`}
-                                        />
-                                    </ListItemButton>
-                                </ListItem>
-                                <Divider />
-                            </Box>
-                        ))}
+                                        <ListItemButton
+                                            selected={collection.id === currentCollectionId}
+                                            onClick={() => handleSwitchCollection(collection.id)}
+                                            sx={{ flexGrow: 1 }}
+                                        >
+                                            <ListItemText
+                                                primary={collection.name}
+                                                secondary={`${collection.cards.length} card(s) • Updated ${new Date(collection.updatedAt).toLocaleDateString()}`}
+                                            />
+                                        </ListItemButton>
+                                    </ListItem>
+                                    <Divider />
+                                </Box>
+                            );
+                        })}
                     </List>
                 </DialogContent>
                 <DialogActions>
