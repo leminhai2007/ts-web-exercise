@@ -9,6 +9,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
+    alpha,
     Container,
     Box,
     Typography,
@@ -26,7 +27,7 @@ import {
     Alert,
     Tooltip,
 } from '@mui/material';
-import { HomeIcon, CloudIcon, CloudOffIcon, GetAppIcon, StarIcon, StarBorderIcon } from './AppIcons';
+import { HomeIcon, GetAppIcon, StarIcon, StarBorderIcon } from './AppIcons';
 import { projects } from '../data/projects';
 
 const FAVORITES_KEY = 'favoriteProjects';
@@ -155,26 +156,42 @@ export const HomePage = () => {
                             A collection of interactive projects and games
                         </Typography>
                     </Box>
-                    <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-                        <Chip
-                            icon={isOnline ? <CloudIcon /> : <CloudOffIcon />}
-                            label={isOnline ? 'Online' : 'Offline'}
-                            color={isOnline ? 'success' : 'default'}
-                            size="small"
+                    <Tooltip title={isOnline ? 'Online' : 'Offline'}>
+                        <Box
                             aria-label={isOnline ? 'Online' : 'Offline'}
                             sx={{
-                                '& .MuiChip-label': { display: { xs: 'none', sm: 'block' } },
-                                '& > span:first-of-type': { ml: { xs: 0, sm: '5px' } },
-                                minWidth: { xs: 32, sm: 'auto' },
-                                justifyContent: 'center',
+                                width: { xs: 10, sm: 14 },
+                                height: { xs: 10, sm: 14 },
+                                borderRadius: '50%',
+                                bgcolor: isOnline ? 'success.main' : 'grey.500',
+                                boxShadow: isOnline ? t => `0 0 8px 2px ${alpha(t.palette.success.main, 0.55)}` : 'none',
+                                alignSelf: 'center',
                             }}
                         />
-                        {isInstallable && (
-                            <Button variant="contained" color="secondary" startIcon={<GetAppIcon />} onClick={handleInstallClick} size="small">
+                    </Tooltip>
+                    {isInstallable && (
+                        <>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                startIcon={<GetAppIcon />}
+                                onClick={handleInstallClick}
+                                size="small"
+                                sx={{ ml: 2, display: { xs: 'none', sm: 'flex' } }}
+                            >
                                 Install App
                             </Button>
-                        )}
-                    </Stack>
+                            <IconButton
+                                color="inherit"
+                                onClick={handleInstallClick}
+                                size="small"
+                                sx={{ ml: 1, display: { xs: 'flex', sm: 'none' } }}
+                                aria-label="Install app"
+                            >
+                                <GetAppIcon />
+                            </IconButton>
+                        </>
+                    )}
                 </Toolbar>
             </AppBar>
 

@@ -697,11 +697,11 @@ export const FlashCards = () => {
                 <Box>
                     <Paper sx={{ p: 3, mb: 3 }}>
                         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                            <Box>
+                            <Box sx={{ width: { xs: '100%', sm: 'auto' }, textAlign: { xs: 'center', sm: 'left' } }}>
                                 <Typography variant="h5" gutterBottom sx={{ fontFamily: CONTENT_FONT, fontSize: '1.5rem' }}>
                                     {currentCollection.name}
                                 </Typography>
-                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                                     <Chip label={`${currentCollection.cards.length} card(s)`} size="small" color="primary" />
                                     <Typography variant="caption" color="text.secondary">
                                         Updated: {new Date(currentCollection.updatedAt).toLocaleDateString()}

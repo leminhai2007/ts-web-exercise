@@ -137,26 +137,28 @@ Always add an `aria-label` to the mobile `IconButton` (the text label is hidden 
 mobile `IconButton`s in a centered `Stack direction="row"` and use a comfortable spacing
 (`spacing={{ xs: 2, sm: 1 }}`).
 
-The same idea applies to status **Chips** (e.g. the Home "Online/Offline" chip): keep the text on
-desktop, hide only the label on mobile and center the icon in a fixed-width chip:
+Connection status on the Home page is a small **status dot** (green when online, gray when offline)
+in the AppBar, wrapped in a `Tooltip` for the accessible label:
 
 ```tsx
-<Chip
-    icon={<CloudIcon />}
-    label="Online"
-    size="small"
-    aria-label="Online"
-    sx={{
-        '& .MuiChip-label': { display: { xs: 'none', sm: 'block' } },
-        '& > span:first-of-type': { ml: { xs: 0, sm: '5px' } },
-        minWidth: { xs: 32, sm: 'auto' },
-        justifyContent: 'center',
-    }}
-/>
+<Tooltip title={isOnline ? 'Online' : 'Offline'}>
+    <Box
+        aria-label={isOnline ? 'Online' : 'Offline'}
+        sx={{
+            width: { xs: 10, sm: 14 },
+            height: { xs: 10, sm: 14 },
+            borderRadius: '50%',
+            bgcolor: isOnline ? 'success.main' : 'grey.500',
+            boxShadow: isOnline ? t => `0 0 8px 2px ${alpha(t.palette.success.main, 0.55)}` : 'none',
+            alignSelf: 'center',
+        }}
+    />
+</Tooltip>
 ```
 
-Because `AppIcons` render a wrapper `<span>` and do not forward MUI's `className`, the chip icon
-spacing must target that wrapper (`& > span:first-of-type`); `.MuiChip-icon` never matches.
+The **Install App** action lives in the Home AppBar, shown only while the app is installable: a
+text button on desktop (`{ xs: 'none', sm: 'flex' }`) and an icon-only `IconButton` with an
+`aria-label` on mobile (`{ xs: 'flex', sm: 'none' }`) — same responsive pattern as project controls.
 
 ### Button Variants
 
