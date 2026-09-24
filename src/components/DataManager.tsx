@@ -267,8 +267,28 @@ export const DataManager = () => {
         setSelectedForExport(prev => (prev.includes(id) ? prev.filter(entry => entry !== id) : [...prev, id]));
     };
 
+    const allExportSelected = selectedForExport.length === BACKUP_PROJECTS.length;
+    const someExportSelected = selectedForExport.length > 0 && !allExportSelected;
+
+    const toggleAllExport = () => {
+        setSelectedForExport(allExportSelected ? [] : BACKUP_PROJECTS.map(project => project.id));
+    };
+
     const toggleImportSelection = (id: string) => {
         setImportSelection(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const availableImportProjects = backupFile ? BACKUP_PROJECTS.filter(project => backupFile.projects[project.id]) : [];
+    const selectedImportCount = availableImportProjects.filter(project => importSelection[project.id]).length;
+    const allImportSelected = availableImportProjects.length > 0 && selectedImportCount === availableImportProjects.length;
+    const someImportSelected = selectedImportCount > 0 && !allImportSelected;
+
+    const toggleAllImport = () => {
+        const next: Record<string, boolean> = {};
+        availableImportProjects.forEach(project => {
+            next[project.id] = !allImportSelected;
+        });
+        setImportSelection(next);
     };
 
     const toggleReplaceChoice = (id: string) => {
@@ -501,6 +521,12 @@ export const DataManager = () => {
                         Select the projects whose saved data you want to include in the backup file. Projects without saved data are skipped.
                     </Typography>
                     <List dense>
+                        <ListItem disablePadding divider sx={{ borderRadius: 1 }}>
+                            <ListItemButton dense onClick={toggleAllExport}>
+                                <Checkbox checked={allExportSelected} indeterminate={someExportSelected} edge="start" tabIndex={-1} disableRipple />
+                                <ListItemText primary={allExportSelected ? 'Deselect all' : 'Select all'} />
+                            </ListItemButton>
+                        </ListItem>
                         {BACKUP_PROJECTS.map(project => {
                             const isSelected = selectedForExport.includes(project.id);
                             const data = currentData.find(entry => entry.id === project.id);
@@ -568,6 +594,12 @@ export const DataManager = () => {
                                 Choose which projects to import:
                             </Typography>
                             <List dense>
+                                <ListItem disablePadding divider sx={{ borderRadius: 1 }}>
+                                    <ListItemButton dense onClick={toggleAllImport}>
+                                        <Checkbox checked={allImportSelected} indeterminate={someImportSelected} edge="start" tabIndex={-1} disableRipple />
+                                        <ListItemText primary={allImportSelected ? 'Deselect all' : 'Select all'} />
+                                    </ListItemButton>
+                                </ListItem>
                                 {BACKUP_PROJECTS.filter(project => backupFile.projects[project.id]).map(project => {
                                     const isChecked = Boolean(importSelection[project.id]);
                                     const localData = currentData.find(entry => entry.id === project.id);
