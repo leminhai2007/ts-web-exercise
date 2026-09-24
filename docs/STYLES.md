@@ -74,20 +74,26 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 ## Animated Background
 
 `src/components/AnimatedBackground.tsx` renders a fixed, full-viewport background using
-`src/assets/background.jpg` on **every** page (mounted once in `App.tsx` next to the `<Router>`).
-The layer is sized with explicit `100vw`/`100vh` and the image itself uses `background-size: cover`,
-so it fills the screen at any image size or viewport aspect (edges are cropped, never letterboxed).
-A `140vw`-wide image plane pans horizontally with a CSS keyframe
+`/background.jpg` (kept in `public/`) on **every** page (mounted once in `App.tsx` next to the
+`<Router>`). The layer is sized with explicit `100vw`/`100vh` and the image itself uses
+`background-size: cover`, so it fills the screen at any image size or viewport aspect (edges are
+cropped, never letterboxed). A `140vw`-wide image plane pans horizontally with a CSS keyframe
 (`translateX(0)` ↔ `translateX(-40vw)`, 60s `ease-in-out` `alternate` infinite) so it moves from
 left to right and back — there is **no vertical translation**. Key railings:
 
 - Use `zIndex: -1` so it always sits behind page content; the palette `background.default`
   (`#7fc4ff`) remains as body/browser fallback.
+- To avoid the "empty background" flash on refresh, the image lives in `public/` so `index.html`
+  can reference it before the JS bundle loads: a `<link rel="preload" as="image">` starts the
+  download immediately and a tiny critical `<style>` paints it on `body` from first paint. The
+  animated layer later covers the same static background seamlessly.
 - Page containers must stay transparent for the image to show through: `ProjectLayout` defaults to
   `bgcolor: 'transparent'` (the `backgroundColor` prop still overrides it) and `HomePage` uses
   `bgcolor: 'transparent'`.
 - Opaque surfaces (Cards, Papers, dialogs, the AppBar) still cover the image where needed, so
   text stays readable.
+- Keep `vite.config.ts`'s PWA precache glob listing `jpg`/`jpeg` so the background is cached for
+  offline use.
 
 ## Shared Layout (ProjectLayout)
 

@@ -28,7 +28,7 @@ export default defineConfig({
                 ],
             },
             workbox: {
-                globPatterns: ['**/*.{js,css,html,svg,png,ico,txt,woff,woff2}'],
+                globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,ico,txt,woff,woff2}'],
                 runtimeCaching: [
                     {
                         urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

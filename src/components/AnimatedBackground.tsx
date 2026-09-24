@@ -10,7 +10,6 @@
 
 import { keyframes } from '@mui/system';
 import { Box } from '@mui/material';
-import backgroundImage from '../assets/background.jpg';
 
 const panHorizontal = keyframes`
     0% {
@@ -42,7 +41,7 @@ export const AnimatedBackground = () => (
                 width: '140vw',
                 minWidth: '100vw',
                 height: '100vh',
-                backgroundImage: `url(${backgroundImage})`,
+                backgroundImage: 'url(/background.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: '50% 50%',
                 backgroundRepeat: 'no-repeat',
