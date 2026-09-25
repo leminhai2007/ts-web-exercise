@@ -317,6 +317,7 @@ export const Game2048 = () => {
                         bgcolor: 'divider',
                         borderRadius: 0,
                         maxWidth: '100%',
+                        touchAction: 'none',
                     }}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
