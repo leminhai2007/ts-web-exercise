@@ -22,7 +22,7 @@
  *    - Consistent with other project components
  *  - AppBar with dark background, back button
  *    - Responsive layout for mobile and desktop
- *    - Paper component with elevation for wheel container
+ *    - Frosted glass card (translucent white + backdrop blur) framing the wheel
  *    - Icon-only buttons on mobile, icon+text on desktop
  *    - Snackbar notifications for user feedback
  *
@@ -560,11 +560,16 @@ export const LuckyWheel = () => {
             {/* Main Content - Wheel */}
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <Paper
+                    elevation={0}
                     sx={{
                         p: 3,
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
+                        bgcolor: 'rgba(255, 255, 255, 0.35)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        borderColor: 'rgba(255, 255, 255, 0.6)',
                     }}
                 >
                     {/* Wheel Canvas */}

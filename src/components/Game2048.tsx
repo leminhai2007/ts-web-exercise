@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Chip } from '@mui/material';
-import { GameIcon, NewGameIcon, ArrowUpward, ArrowDownward, ArrowBack, ArrowForward } from './AppIcons';
+import { Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material';
+import { GameIcon, NewGameIcon } from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 
 type Board = number[][];
@@ -293,76 +293,86 @@ export const Game2048 = () => {
     return (
         <ProjectLayout title="2048" icon={<GameIcon />} maxWidth="sm" containerPadding={{ xs: 2, sm: 4 }}>
             {/* Score and New Game Button */}
-            <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h5" sx={{ fontWeight: 400 }}>
-                    Score:{' '}
-                    <Box component="span" sx={{ color: 'primary.main' }}>
-                        {score}
-                    </Box>
-                </Typography>
-                <Button variant="contained" onClick={resetGame} startIcon={<NewGameIcon />} size="medium" sx={{ display: { xs: 'none', sm: 'flex' } }}>
-                    New Game
-                </Button>
-                <IconButton onClick={resetGame} color="primary" size="medium" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="New game">
-                    <NewGameIcon />
-                </IconButton>
-            </Stack>
-            <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: 0, bgcolor: 'background.paper', mx: { xs: 0.5, sm: 0 } }}>
-                <Box
+            <Box
+                sx={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: { xs: 'center', sm: 'flex-start' },
+                    minHeight: { xs: 'calc(100vh - 88px)', sm: 'auto' },
+                }}
+            >
+                <Stack
+                    direction="row"
+                    spacing={2}
                     sx={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: { xs: 0.5, sm: 2 },
-                        p: { xs: 0.5, sm: 2 },
-                        bgcolor: 'divider',
-                        borderRadius: 0,
-                        maxWidth: '100%',
-                        touchAction: 'none',
+                        mb: { xs: 0, sm: 3 },
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        position: { xs: 'absolute', sm: 'static' },
+                        top: 0,
+                        left: 0,
+                        right: 0,
                     }}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
                 >
-                    {board.map((row, i) =>
-                        row.map((cell, j) => (
-                            <Paper
-                                key={`${i}-${j}`}
-                                elevation={cell > 0 ? 4 : 0}
-                                sx={{
-                                    aspectRatio: '1',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: cell > 0 ? getTileColor(cell) : 'background.paper',
-                                    color: getTileTextColor(cell),
-                                    fontSize: {
-                                        xs: cell >= 1000 ? '1rem' : cell >= 100 ? '1.25rem' : '1.5rem',
-                                        sm: cell >= 1000 ? '2rem' : cell >= 100 ? '2.5rem' : '3rem',
-                                    },
-                                    fontWeight: 700,
-                                    borderRadius: 0,
-                                    transition: 'all 0.15s ease-in-out',
-                                    minWidth: 0,
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                {cell > 0 && cell}
-                            </Paper>
-                        ))
-                    )}
-                </Box>
-            </Paper>
-
-            <Paper elevation={1} sx={{ mt: { xs: 2, sm: 3 }, p: { xs: 1.5, sm: 2 }, borderRadius: 0 }}>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ display: 'block', mb: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                    Use arrow keys or swipe to move tiles. Combine tiles with the same number to create larger numbers!
-                </Typography>
-                <Stack direction="row" spacing={1} useFlexGap sx={{ justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <Chip icon={<ArrowUpward />} label="Up" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                    <Chip icon={<ArrowDownward />} label="Down" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                    <Chip icon={<ArrowBack />} label="Left" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
-                    <Chip icon={<ArrowForward />} label="Right" size="small" variant="outlined" sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' } }} />
+                    <Typography variant="h5" sx={{ fontWeight: 400 }}>
+                        Score:{' '}
+                        <Box component="span" sx={{ color: 'primary.main' }}>
+                            {score}
+                        </Box>
+                    </Typography>
+                    <Button variant="contained" onClick={resetGame} startIcon={<NewGameIcon />} size="medium" sx={{ display: { xs: 'none', sm: 'flex' } }}>
+                        New Game
+                    </Button>
+                    <IconButton onClick={resetGame} color="primary" size="medium" sx={{ display: { xs: 'flex', sm: 'none' } }} aria-label="New game">
+                        <NewGameIcon />
+                    </IconButton>
                 </Stack>
-            </Paper>
+                <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: 0, bgcolor: 'background.paper', mx: { xs: 0.5, sm: 0 } }}>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, 1fr)',
+                            gap: { xs: 0.5, sm: 2 },
+                            p: { xs: 0.5, sm: 2 },
+                            bgcolor: 'divider',
+                            borderRadius: 0,
+                            maxWidth: '100%',
+                            touchAction: 'none',
+                        }}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        {board.map((row, i) =>
+                            row.map((cell, j) => (
+                                <Paper
+                                    key={`${i}-${j}`}
+                                    elevation={cell > 0 ? 4 : 0}
+                                    sx={{
+                                        aspectRatio: '1',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: cell > 0 ? getTileColor(cell) : 'background.paper',
+                                        color: getTileTextColor(cell),
+                                        fontSize: {
+                                            xs: cell >= 1000 ? '1rem' : cell >= 100 ? '1.25rem' : '1.5rem',
+                                            sm: cell >= 1000 ? '2rem' : cell >= 100 ? '2.5rem' : '3rem',
+                                        },
+                                        fontWeight: 700,
+                                        borderRadius: 0,
+                                        transition: 'all 0.15s ease-in-out',
+                                        minWidth: 0,
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    {cell > 0 && cell}
+                                </Paper>
+                            ))
+                        )}
+                    </Box>
+                </Paper>
+            </Box>
 
             <Dialog open={won && !gameOver} onClose={() => setWon(false)} maxWidth="xs" fullWidth>
                 <DialogTitle sx={{ textAlign: 'center', fontSize: '1.25rem', fontWeight: 400, lineHeight: 1.8 }}>You Win! 🎉</DialogTitle>
