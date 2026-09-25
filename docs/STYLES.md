@@ -76,11 +76,14 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 
 `src/components/AnimatedBackground.tsx` renders a fixed, full-viewport background using
 `/background.jpg` (kept in `public/`) on **every** page (mounted once in `App.tsx` next to the
-`<Router>`). The layer is sized with explicit `100vw`/`100vh` and the image itself uses
-`background-size: cover`, so it fills the screen at any image size or viewport aspect (edges are
-cropped, never letterboxed). A `140vw`-wide image plane pans horizontally with a CSS keyframe
-(`translateX(0)` ↔ `translateX(-40vw)`, 60s `ease-in-out` `alternate` infinite) so it moves from
-left to right and back — there is **no vertical translation**. Key railings:
+`<Router>`). A strip (`left: 0`, `width: calc(100vw + 180vh)`, `height: 100vh`) tiles the image
+horizontally (`background-repeat: repeat-x`, `background-size: auto 100vh`), so each tile is the
+full 16:9 image scaled to the viewport height (≈ `177.78vh` wide, aspect preserved, never
+letterboxed). The scene drifts **left** continuously — the view travels left to right over the
+background — via a `requestAnimationFrame` loop that advances the strip by one tile width then
+wraps, so the loop is pixel-identical (seamless). Speed: one tile per `40s`. The loop pauses on
+`visibilitychange` (`document.hidden`), so switching back from another window resumes in place with
+no catch-up freeze; there is **no vertical translation**. Key railings:
 
 - Use `zIndex: -1` so it always sits behind page content; the palette `background.default`
   (`#7fc4ff`) remains as body/browser fallback.
