@@ -56,7 +56,22 @@ import {
     Divider,
     Tooltip,
 } from '@mui/material';
-import { TimerIcon, AddIcon, DeleteIcon, EditIcon, CopyIcon, PlayIcon, PauseIcon, StopIcon, RefreshIcon, BellIcon, ArrowUpward, ArrowDownward } from './AppIcons';
+import {
+    TimerIcon,
+    AddIcon,
+    DeleteIcon,
+    EditIcon,
+    CopyIcon,
+    PlayIcon,
+    PauseIcon,
+    StopIcon,
+    RefreshIcon,
+    BellIcon,
+    ArrowUpward,
+    ArrowDownward,
+    EyeIcon,
+    EyeOffIcon,
+} from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 import { MAX_TOTAL_SECONDS, counterTotalSeconds, formatDuration } from '../types/Pomodoro';
 import type { PomodoroCounter, PomodoroPhase } from '../types/Pomodoro';
@@ -395,6 +410,7 @@ export const PomodoroClock = () => {
     // Running state
     const [run, setRun] = useState<RunState | null>(null);
     const [completionOpen, setCompletionOpen] = useState(false);
+    const [transparentBg, setTransparentBg] = useState(false);
     const alarmIntervalRef = useRef<number | null>(null);
     const runRef = useRef<RunState | null>(null);
     const notificationsRef = useRef<boolean>(notificationsEnabled);
@@ -467,6 +483,48 @@ export const PomodoroClock = () => {
         }, 250);
         return () => window.clearInterval(interval);
     }, [isTicking]);
+
+    // Keep the device screen awake while a counter is running (Wake Lock API). The lock is auto-released by the browser when the tab is hidden, so re-acquire when it becomes visible again.
+    useEffect(() => {
+        if (run === null) return undefined;
+        let sentinel: WakeLockSentinel | null = null;
+
+        const acquire = async () => {
+            if (!navigator.wakeLock) return;
+            try {
+                sentinel = await navigator.wakeLock.request('screen');
+            } catch (error) {
+                console.error('Failed to keep screen awake:', error);
+            }
+        };
+
+        const release = async () => {
+            if (!sentinel) return;
+            try {
+                await sentinel.release();
+            } catch (error) {
+                console.error('Failed to release wake lock:', error);
+            } finally {
+                sentinel = null;
+            }
+        };
+
+        const handleVisibility = () => {
+            if (document.hidden) {
+                void release();
+            } else {
+                void acquire();
+            }
+        };
+
+        void acquire();
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibility);
+            void release();
+        };
+    }, [run === null]);
 
     // --- Timer controls ---
 
@@ -689,7 +747,28 @@ export const PomodoroClock = () => {
 
         return (
             <ProjectLayout title="Pomodoro Clock" icon={<TimerIcon />}>
-                <Paper sx={{ p: { xs: 3, sm: 5 }, mt: 2, textAlign: 'center' }}>
+                <Paper
+                    sx={{
+                        p: { xs: 3, sm: 5 },
+                        mt: 2,
+                        textAlign: 'center',
+                        position: 'relative',
+                        bgcolor: transparentBg ? 'rgba(255, 255, 255, 0.35)' : 'background.paper',
+                        backdropFilter: transparentBg ? 'blur(10px)' : 'none',
+                        WebkitBackdropFilter: transparentBg ? 'blur(10px)' : 'none',
+                        borderColor: transparentBg ? 'rgba(255, 255, 255, 0.6)' : 'divider',
+                    }}
+                >
+                    <Tooltip title={transparentBg ? 'Restore white background' : 'Use frosted glass background'}>
+                        <IconButton
+                            onClick={() => setTransparentBg(prev => !prev)}
+                            aria-label={transparentBg ? 'Restore white background' : 'Use frosted glass background'}
+                            size="small"
+                            sx={{ position: 'absolute', top: 8, right: 8 }}
+                        >
+                            {transparentBg ? <EyeIcon /> : <EyeOffIcon />}
+                        </IconButton>
+                    </Tooltip>
                     <Typography variant="overline" color="text.secondary">
                         {run.counterName}
                     </Typography>

@@ -25,6 +25,8 @@ import {
     faDharmachakra,
     faDice,
     faDownload,
+    faEye,
+    faEyeSlash,
     faFlag,
     faFloppyDisk,
     faFolderOpen,
@@ -110,6 +112,10 @@ const TimerIcon = (props: IconProps) => <AppIcon icon={faStopwatch} {...props} /
 const CopyIcon = (props: IconProps) => <AppIcon icon={faCopy} {...props} />;
 const BellIcon = (props: IconProps) => <AppIcon icon={faBell} {...props} />;
 
+// Visibility / background
+const EyeIcon = (props: IconProps) => <AppIcon icon={faEye} {...props} />;
+const EyeOffIcon = (props: IconProps) => <AppIcon icon={faEyeSlash} {...props} />;
+
 // Playback
 const PlayIcon = (props: IconProps) => <AppIcon icon={faPlay} {...props} />;
 const PauseIcon = (props: IconProps) => <AppIcon icon={faPause} {...props} />;
@@ -173,6 +179,8 @@ export {
     PauseIcon,
     StopIcon,
     SearchIcon,
+    EyeIcon,
+    EyeOffIcon,
     StarIcon,
     StarBorderIcon,
     HomeIcon,
