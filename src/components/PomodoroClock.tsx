@@ -485,8 +485,9 @@ export const PomodoroClock = () => {
     }, [isTicking]);
 
     // Keep the device screen awake while a counter is running (Wake Lock API). The lock is auto-released by the browser when the tab is hidden, so re-acquire when it becomes visible again.
+    const hasRun = run !== null;
     useEffect(() => {
-        if (run === null) return undefined;
+        if (!hasRun) return undefined;
         let sentinel: WakeLockSentinel | null = null;
 
         const acquire = async () => {
@@ -524,7 +525,7 @@ export const PomodoroClock = () => {
             document.removeEventListener('visibilitychange', handleVisibility);
             void release();
         };
-    }, [run === null]);
+    }, [hasRun]);
 
     // --- Timer controls ---
 
