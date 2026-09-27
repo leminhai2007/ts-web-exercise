@@ -8,10 +8,10 @@
         "dev:vite": "vite",
         "dev:server": "node server.js",
         "build": "tsc -b && vite build",
-        "check:all:format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+        "check:all:format": "prettier --check \"{src,docs}/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\"",
         "check:all:convention": "eslint .",
         "check:all": "npm run check:all:format && npm run check:all:convention",
-        "fix:all:format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+        "fix:all:format": "prettier --write \"{src,docs}/**/*.{js,jsx,ts,tsx,json,css,md}\" \"*.{js,jsx,ts,tsx,json,css,md}\"",
         "fix:all:convention": "eslint . --fix",
         "fix:all": "npm run fix:all:format && npm run fix:all:convention",
         "check:staged": "lint-staged",
@@ -19,7 +19,8 @@
         "clean": "rimraf dist node_modules/.vite",
         "preview": "vite preview",
         "serve": "serve dist",
-        "playwright:mcp": "playwright-mcp --browser chromium"
+        "playwright:mcp": "playwright-mcp --browser chromium",
+        "prepare": "husky"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",

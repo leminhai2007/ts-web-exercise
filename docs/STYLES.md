@@ -80,13 +80,22 @@ Use the theme tokens (never raw hex values): `primary.main`, `secondary.main`, `
 horizontally (`background-repeat: repeat-x`, `background-size: auto 100vh`), so each tile is the
 full 16:9 image scaled to the viewport height (≈ `177.78vh` wide, aspect preserved, never
 letterboxed). The scene drifts **left** continuously — the view travels left to right over the
-background — via a `requestAnimationFrame` loop that advances the strip by one tile width then
-wraps, so the loop is pixel-identical (seamless). Speed: one tile per `40s`. The loop pauses on
+background — via a **CSS `@keyframes` animation** built with MUI's `keyframes` helper. It steps
+exactly one tile width (`-177.78vh`) over `40s` with `linear` timing, so the loop is
+pixel-identical (seamless). Because it is a pure `transform` animation it is composited by the
+browser and costs the main thread nothing, which is essential for pages that animate their own
+content (e.g. the Lucky Wheel spin). `animationPlayState` is toggled to `paused` on
 `visibilitychange` (`document.hidden`), so switching back from another window resumes in place with
 no catch-up freeze; there is **no vertical translation**. Key railings:
 
 - Use `zIndex: -1` so it always sits behind page content; the palette `background.default`
   (`#7fc4ff`) remains as body/browser fallback.
+- **Do not reintroduce a JS `requestAnimationFrame` loop here.** A main-thread loop competes with
+  any page animation and was the cause of the whole-page stalls described in
+  `docs/LUCKY_WHEEL_KNOWN_ISSUES.md`.
+- **Do not put `filter` or `backdrop-filter` on a surface that sits above this layer.** A filter
+  must be re-rasterized every time the backdrop moves, so even a static "frosted glass" panel over
+  the background costs a full blur pass per frame. Use a solid/translucent fill instead.
 - To avoid the "empty background" flash on refresh, the image lives in `public/` so `index.html`
   can reference it before the JS bundle loads: a `<link rel="preload" as="image">` starts the
   download immediately and a tiny critical `<style>` paints it on `body` from first paint. The
@@ -98,6 +107,43 @@ no catch-up freeze; there is **no vertical translation**. Key railings:
   text stays readable.
 - Keep `vite.config.ts`'s PWA precache glob listing `jpg`/`jpeg` so the background is cached for
   offline use.
+
+## Canvas / Animation Performance Rules
+
+These apply to any canvas-drawing or animated component in the repo (currently only the Lucky
+Wheel):
+
+- **Rasterize once, then transform.** Draw the scene into the canvas when its configuration
+  changes, and animate with a CSS `transform` (plus `will-change: transform`) rather than
+  repainting pixels per frame.
+- **Never call `setState` from an animation frame.** Write the animated value straight to the DOM
+  from the `requestAnimationFrame` callback, and keep the value in a ref for logic that needs it.
+- **No `filter` / `backdrop-filter`** on the animated element or any ancestor of it.
+- Track the animation frame id and `cancelAnimationFrame` on unmount.
+- Scale canvas backing stores by `devicePixelRatio` (capped) and pre-scale the 2D context with
+  `setTransform` so drawing code keeps working in CSS pixels.
+- Canvas text still has to wait for the webfont via `document.fonts.load('16px "VT323"')` and
+  redraw once (see the VT323 note above).
+
+## Canvas Text Legibility Rules
+
+White or light text on a colored canvas fill needs more than a drop shadow to stay readable:
+
+- **Give it a hard outline.** Draw a dark `strokeText` with `lineWidth >= 1` _underneath_ the
+  `fillText`. `lineWidth` is a normal transformed length, so the outline stays crisp and device
+  independent at any DPR, and it carries legibility even if the soft halo is ever mis-scaled.
+- **`ctx.shadowBlur` is the exception to DPR scaling.** It is defined in _device_ pixels and is
+  **not** affected by `setTransform`, unlike every other length you pass to the context. Whenever
+  the context is pre-scaled by `devicePixelRatio`, multiply `shadowBlur` by the same ratio, or the
+  halo silently loses a factor of dpr and the text looks washed out on HiDPI screens. Leave a
+  comment at that line, because the multiplication looks redundant and is easy to "clean up".
+- **Scope shadows to the shape that casts them.** Set `shadowColor` / `shadowBlur` inside the
+  `save()` / `restore()` of the element that needs it. Setting it before a loop gives every
+  following fill the shadow, which is usually a visible artifact.
+- **Derive font size from the available space, not a fixed constant.** If text is drawn radially or
+  tangentially, the room it has is the arc length it occupies; compute the font size from that
+  pitch so dense inputs (e.g. 64 slices) shrink the text instead of letting neighbours overlap.
+  Keep a small floor so text never becomes unreadably tiny.
 
 ## Shared Layout (ProjectLayout)
 

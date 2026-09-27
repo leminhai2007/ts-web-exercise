@@ -5,6 +5,31 @@
  *
  * Related docs (update if this component changes): AGENTS.md, docs/NEW_PROJECT_TEMPLATE.md, docs/STYLES.md, docs/LUCKY_WHEEL_KNOWN_ISSUES.md
  *
+ * PERFORMANCE MODEL (read before changing the rendering code):
+ * The wheel must stay at 60fps even with 60+ slices, and the page behind it (including the
+ * always-on animated background) must keep moving. Therefore:
+ * 1. The wheel is rasterized ONCE per configuration change into two stacked canvases:
+ *    - a rotating layer (slices + labels) and a static layer (rim + hub + pointer).
+ *    Rotation is then a pure CSS `transform: rotate()` on the rotating layer, so the
+ *    compositor animates it and the browser never repaints pixels or re-rasterizes text.
+ * 2. The spin loop writes `canvas.style.transform` directly from a `requestAnimationFrame`
+ *    callback. It never calls `setState`, so the component does not re-render while spinning.
+ * 3. No CSS `filter` or `backdrop-filter` is allowed on the wheel or any ancestor of it:
+ *    filters must be re-rasterized whenever the backdrop or the transform changes, which
+ *    stalls the whole page (see docs/LUCKY_WHEEL_KNOWN_ISSUES.md).
+ * 4. The backing store is scaled by `devicePixelRatio` so text stays crisp without redrawing.
+ *
+ * LABEL LEGIBILITY RULES (read before changing the label drawing code):
+ * Slice labels are small white text on saturated fills, so every glyph is drawn twice: a hard
+ * dark `strokeText` outline underneath, then the white `fillText`. Both the outline width and the
+ * blurred halo are scaled with the font size, and the font size itself shrinks as the wheel gets
+ * denser (see LABEL_PITCH_FILL) so neighbouring labels stop colliding. Two traps to keep in mind:
+ * - `ctx.shadowBlur` is the ONE length that is measured in device pixels and is NOT affected by
+ *   the context transform. It must always be multiplied by `devicePixelRatio` here, otherwise the
+ *   halo silently loses a factor of dpr and the labels look washed out on HiDPI screens.
+ * - Shadow state must be set INSIDE the per-label save/restore, after the slice fills. Setting it
+ *   before the loop gives every flat slice fill a drop shadow, which is a visible dark ring.
+ *
  * OVERVIEW:
  * Built with Material UI following the project's design system. Users can spin the wheel, customize
  * items, save favorite wheels, and share them via URL.
@@ -22,7 +47,7 @@
  *    - Consistent with other project components
  *  - AppBar with dark background, back button
  *    - Responsive layout for mobile and desktop
- *    - Frosted glass card (translucent white + backdrop blur) framing the wheel
+ *    - Translucent white card (solid fill, no backdrop blur) framing the wheel
  *    - Icon-only buttons on mobile, icon+text on desktop
  *    - Snackbar notifications for user feedback
  *
@@ -62,25 +87,29 @@
  *
  * CORE FUNCTIONS:
  *
+ * fitSliceText(): Label fitting
+ * - Returns the label unchanged when it already fits the slice
+ * - Otherwise binary-searches the longest prefix + ellipsis that fits (O(log n) measureText calls)
+ * - Always keeps at least 10 characters, even when they overflow
+ * - Short labels that overflow are shown in full rather than truncated
+ *
  * drawWheel(): Canvas rendering engine
- * - Validates canvas and context
- * - Calculates dimensions and centers wheel
- * - Prepares canvas for drawing (clear, save, translate, rotate)
- * - Calculates slice geometry (divides circle by item count)
- * - Draws colored slices with borders
- * - Renders text with smart truncation algorithm:
- *   - Measures pixel width of text
- *   - Ensures minimum 10 characters displayed
- *   - Trims character by character until fits
- *   - Adds ellipsis if truncated
- * - Draws center circle (hub)
- * - Draws pointer triangle at top
+ * - Sizes both backing stores to `canvasSize * devicePixelRatio` and pre-scales the contexts
+ * - Rotating layer: clears, translates to the centre, draws colored slices with borders and
+ *   the fitted labels (plus their drop shadow for legibility)
+ * - Static layer: outer rim, inner rim, centre hub and the top pointer triangle
+ * - Runs only when items, wheel size, font readiness or theme color change
+ *
+ * setWheelRotation(): Rotation writer
+ * - Stores the current angle in a ref (no re-render)
+ * - Applies it as a CSS transform on the rotating canvas layer
  *
  * spinWheel(): Animation controller
  * - Guard conditions prevent multiple spins
  * - Random rotation: 5-10 full rotations + random 0-360°
  * - 4-second duration with cubic ease-out easing
- * - Frame-by-frame animation loop using requestAnimationFrame
+ * - Frame-by-frame requestAnimationFrame loop writing only the CSS transform
+ * - Frame id is tracked so the loop is cancelled on unmount
  * - Determines winner when animation completes
  *
  * determineWinner(): Winner calculation algorithm
@@ -128,11 +157,12 @@
  * Cyan, Magenta, Green, Yellow, Orange, Purple, Red, Sky Blue, Hot Pink, Mint
  *
  * TECHNICAL IMPLEMENTATION:
- * - HTML5 Canvas API with 2D context
+ * - HTML5 Canvas API with 2D context, two stacked layers (rotating + static)
  * - Canvas size: 300x300px (mobile) or 450x450px (desktop)
+ * - devicePixelRatio-aware backing store for crisp labels
  * - Polar coordinates for pie segments
  * - Text truncation with pixel-width measurement
- * - requestAnimationFrame for smooth 60fps animation
+ * - CSS transform rotation driven by requestAnimationFrame (compositor-only, no repaints)
  * - localStorage for saving wheels
  * - lz-string compression for compact share URLs (?wheel= param)
  * - Loads legacy uncompressed ?items= param for backward compatibility
@@ -151,6 +181,7 @@
  *
  * ACCESSIBILITY:
  * - Keyboard navigation in dialogs (Escape to close, Enter to submit)
+ * - The wheel is a focusable button: Enter/Space spins it
  * - Visual feedback: hover states, pointer cursor on wheel
  * - High contrast text (white on vibrant colors with shadow)
  * - Touch targets: min 48px for mobile
@@ -194,6 +225,54 @@ const DEFAULT_ITEMS: WheelItem[] = [
 
 const CONTENT_FONT = '"VT323", "Courier New", monospace';
 const CONTENT_FONT_READY = '16px "VT323"';
+const LABEL_FONT_SIZE = 16;
+const MIN_LABEL_FONT_SIZE = 8;
+// Fraction of the available arc that one label may occupy before neighbouring labels collide.
+const LABEL_PITCH_FILL = 0.8;
+const LABEL_FILL = '#ffffff';
+const LABEL_OUTLINE = 'rgba(0, 0, 0, 0.85)';
+const LABEL_OUTLINE_RATIO = 5;
+const LABEL_SHADOW = 'rgba(0, 0, 0, 0.7)';
+// IMPORTANT: ctx.shadowBlur is measured in DEVICE pixels and is NOT affected by the context
+// transform, unlike every other length below. Because the wheel drawing is pre-scaled by
+// devicePixelRatio, this value must be multiplied by that ratio at draw time or the halo
+// silently shrinks to 1/dpr of its intended strength and the labels look washed out on HiDPI
+// screens. See docs/LUCKY_WHEEL_KNOWN_ISSUES.md.
+const LABEL_SHADOW_BLUR = 4;
+const MIN_LABEL_CHARS = 10;
+const MAX_ITEMS_CHARS = 50;
+const SPIN_DURATION_MS = 4000;
+const MAX_DEVICE_PIXEL_RATIO = 2;
+const LABEL_TEXT_RADIUS_RATIO = 0.55;
+const LABEL_MAX_WIDTH_RATIO = 0.75;
+
+/**
+ * Returns the longest label that fits `maxWidth`, adding an ellipsis when the text is cut.
+ * At least MIN_LABEL_CHARS characters are always kept, and labels that are already short are
+ * never truncated (they overflow instead), which matches the previous behaviour.
+ */
+const fitSliceText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string => {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+
+    const minChars = Math.min(MIN_LABEL_CHARS, text.length);
+    if (minChars === text.length) return text;
+
+    let low = minChars;
+    let high = text.length - 1;
+    let best = -1;
+    while (low <= high) {
+        const mid = (low + high) >> 1;
+        if (ctx.measureText(`${text.slice(0, mid)}...`).width <= maxWidth) {
+            best = mid;
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    const chars = best === -1 ? minChars : best;
+    return `${text.slice(0, chars)}...`;
+};
 
 const loadStoredWheels = (): SavedWheel[] => {
     try {
@@ -222,10 +301,10 @@ const loadSharedItems = (): WheelItem[] | null => {
 export const LuckyWheel = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const canvasSize = isMobile ? 300 : 450;
 
     const [items, setItems] = useState<WheelItem[]>(() => loadSharedItems() ?? DEFAULT_ITEMS);
     const [isSpinning, setIsSpinning] = useState(false);
-    const [rotation, setRotation] = useState(0);
     const [result, setResult] = useState<string | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editText, setEditText] = useState('');
@@ -235,7 +314,11 @@ export const LuckyWheel = () => {
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showCopySnackbar, setShowCopySnackbar] = useState(false);
     const [wheelFontReady, setWheelFontReady] = useState(false);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const wheelCanvasRef = useRef<HTMLCanvasElement>(null);
+    const frameCanvasRef = useRef<HTMLCanvasElement>(null);
+    const rotationRef = useRef(0);
+    const spinningRef = useRef(false);
+    const spinFrameRef = useRef(0);
 
     useEffect(() => {
         let active = true;
@@ -250,111 +333,132 @@ export const LuckyWheel = () => {
         };
     }, []);
 
+    // Stop the animation loop if the page unmounts mid-spin
+    useEffect(() => {
+        return () => {
+            if (spinFrameRef.current) {
+                cancelAnimationFrame(spinFrameRef.current);
+                spinFrameRef.current = 0;
+            }
+        };
+    }, []);
+
     const drawWheel = useCallback(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        const wheelCanvas = wheelCanvasRef.current;
+        const frameCanvas = frameCanvasRef.current;
+        if (!wheelCanvas || !frameCanvas || items.length === 0) return;
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        const wheelCtx = wheelCanvas.getContext('2d');
+        const frameCtx = frameCanvas.getContext('2d');
+        if (!wheelCtx || !frameCtx) return;
 
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = Math.min(centerX, centerY) - 10;
+        // Scale the backing store by the device pixel ratio so labels stay crisp on HiDPI screens.
+        // Layout keeps working in CSS pixels via the pre-scaled context.
+        const dpr = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
+        const size = canvasSize;
+        const center = size / 2;
+        const radius = center - 10;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate((rotation * Math.PI) / 180);
+        for (const canvas of [wheelCanvas, frameCanvas]) {
+            canvas.width = Math.round(size * dpr);
+            canvas.height = Math.round(size * dpr);
+        }
 
+        wheelCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        frameCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        wheelCtx.clearRect(0, 0, size, size);
+        frameCtx.clearRect(0, 0, size, size);
+
+        // Rotating layer: slices and labels, drawn once at 0deg. Rotation is a CSS transform.
         const sliceAngle = (2 * Math.PI) / items.length;
+        const labelRadius = radius * LABEL_TEXT_RADIUS_RATIO;
+        const maxLabelWidth = radius * LABEL_MAX_WIDTH_RATIO;
+
+        // Labels are drawn radially, so the space one label has is the arc length it covers at
+        // labelRadius. Shrink the font when the wheel is dense enough that neighbours would
+        // otherwise overlap - a 64 item wheel leaves ~11px per label and cannot keep 16px text.
+        const labelPitch = sliceAngle * labelRadius;
+        const fontSize = Math.max(MIN_LABEL_FONT_SIZE, Math.min(LABEL_FONT_SIZE, Math.floor(labelPitch * LABEL_PITCH_FILL)));
+
+        wheelCtx.save();
+        wheelCtx.translate(center, center);
+        wheelCtx.textAlign = 'center';
+        wheelCtx.textBaseline = 'alphabetic';
+        wheelCtx.font = `bold ${fontSize}px ${wheelFontReady ? CONTENT_FONT : 'monospace'}`;
 
         items.forEach((item, index) => {
             const startAngle = index * sliceAngle;
-            const endAngle = startAngle + sliceAngle;
 
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.arc(0, 0, radius, startAngle, endAngle);
-            ctx.closePath();
-            ctx.fillStyle = item.color;
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 3;
-            ctx.stroke();
+            wheelCtx.beginPath();
+            wheelCtx.moveTo(0, 0);
+            wheelCtx.arc(0, 0, radius, startAngle, startAngle + sliceAngle);
+            wheelCtx.closePath();
+            wheelCtx.fillStyle = item.color;
+            wheelCtx.fill();
+            wheelCtx.strokeStyle = '#fff';
+            wheelCtx.lineWidth = 3;
+            wheelCtx.stroke();
 
-            ctx.save();
-            ctx.rotate(startAngle + sliceAngle / 2);
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#fff';
-            ctx.font = `bold 16px ${wheelFontReady ? CONTENT_FONT : 'monospace'}`;
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 3;
+            // Labels are white on saturated colors, so each glyph gets a hard dark outline plus a
+            // soft blurred halo, both scaled with the font. They are set inside this save/restore
+            // so the flat slice fills above never pick up a shadow.
+            wheelCtx.save();
+            wheelCtx.rotate(startAngle + sliceAngle / 2);
+            wheelCtx.lineJoin = 'round';
+            wheelCtx.miterLimit = 2;
+            wheelCtx.shadowColor = LABEL_SHADOW;
+            wheelCtx.shadowBlur = LABEL_SHADOW_BLUR * (fontSize / LABEL_FONT_SIZE) * dpr;
 
-            // Truncate text if too long to fit in the slice
-            let displayText = item.text;
-            const maxWidth = radius * 0.75; // Increased from 0.6 to 0.75 for more space
-            let textWidth = ctx.measureText(displayText).width;
+            const label = fitSliceText(wheelCtx, item.text, maxLabelWidth);
 
-            // Ensure at least 10 characters are shown (or full text if shorter)
-            const minChars = Math.min(10, item.text.length);
+            wheelCtx.strokeStyle = LABEL_OUTLINE;
+            wheelCtx.lineWidth = Math.max(1, fontSize / LABEL_OUTLINE_RATIO);
+            wheelCtx.strokeText(label, labelRadius, 5);
 
-            if (textWidth > maxWidth) {
-                // Truncate and add ellipsis, but keep at least minChars
-                displayText = item.text.slice(0, Math.max(minChars, item.text.length));
-                textWidth = ctx.measureText(displayText).width;
+            wheelCtx.fillStyle = LABEL_FILL;
+            wheelCtx.fillText(label, labelRadius, 5);
 
-                while (textWidth > maxWidth && displayText.length > minChars) {
-                    displayText = displayText.slice(0, -1);
-                    textWidth = ctx.measureText(displayText + '...').width;
-                }
-
-                if (displayText.length < item.text.length) {
-                    displayText = displayText + '...';
-                }
-            }
-
-            ctx.fillText(displayText, radius * 0.55, 5);
-            ctx.restore();
+            wheelCtx.restore();
         });
 
-        ctx.restore();
+        wheelCtx.restore();
 
-        // Strong dark rim so the wheel stands out against the page background
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius + 4, 0, 2 * Math.PI);
-        ctx.lineWidth = 8;
-        ctx.strokeStyle = '#3a2d1f';
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius - 2, 0, 2 * Math.PI);
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#3a2d1f';
-        ctx.stroke();
+        // Static layer: rims, hub and pointer stay upright while the slices spin.
+        frameCtx.beginPath();
+        frameCtx.arc(center, center, radius + 4, 0, 2 * Math.PI);
+        frameCtx.lineWidth = 8;
+        frameCtx.strokeStyle = '#3a2d1f';
+        frameCtx.stroke();
+        frameCtx.beginPath();
+        frameCtx.arc(center, center, radius - 2, 0, 2 * Math.PI);
+        frameCtx.lineWidth = 3;
+        frameCtx.strokeStyle = '#3a2d1f';
+        frameCtx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
-        ctx.fillStyle = '#3a2d1f';
-        ctx.fill();
-        ctx.strokeStyle = theme.palette.primary.main;
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        frameCtx.beginPath();
+        frameCtx.arc(center, center, 20, 0, 2 * Math.PI);
+        frameCtx.fillStyle = '#3a2d1f';
+        frameCtx.fill();
+        frameCtx.strokeStyle = theme.palette.primary.main;
+        frameCtx.lineWidth = 4;
+        frameCtx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
-        ctx.fillStyle = theme.palette.primary.main;
-        ctx.fill();
+        frameCtx.beginPath();
+        frameCtx.arc(center, center, 8, 0, 2 * Math.PI);
+        frameCtx.fillStyle = theme.palette.primary.main;
+        frameCtx.fill();
 
-        ctx.beginPath();
-        ctx.moveTo(centerX, 10);
-        ctx.lineTo(centerX - 15, 40);
-        ctx.lineTo(centerX + 15, 40);
-        ctx.closePath();
-        ctx.fillStyle = theme.palette.primary.main;
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    }, [items, rotation, theme.palette.primary.main, wheelFontReady]);
+        frameCtx.beginPath();
+        frameCtx.moveTo(center, 10);
+        frameCtx.lineTo(center - 15, 40);
+        frameCtx.lineTo(center + 15, 40);
+        frameCtx.closePath();
+        frameCtx.fillStyle = theme.palette.primary.main;
+        frameCtx.fill();
+        frameCtx.strokeStyle = '#fff';
+        frameCtx.lineWidth = 2;
+        frameCtx.stroke();
+    }, [items, canvasSize, theme.palette.primary.main, wheelFontReady]);
 
     useEffect(() => {
         if (window.location.search.includes('wheel=') || window.location.search.includes('items=')) {
@@ -362,53 +466,16 @@ export const LuckyWheel = () => {
         }
     }, []);
 
+    // Redraw only when the wheel configuration changes - never while spinning.
     useEffect(() => {
         drawWheel();
     }, [drawWheel]);
 
-    // Ensure wheel is drawn when canvas ref is ready
-    useEffect(() => {
-        if (canvasRef.current) {
-            drawWheel();
+    const setWheelRotation = (degrees: number) => {
+        rotationRef.current = degrees;
+        if (wheelCanvasRef.current) {
+            wheelCanvasRef.current.style.transform = `rotate(${degrees}deg)`;
         }
-    }, [items, rotation, drawWheel]);
-
-    const spinWheel = () => {
-        if (isSpinning || items.length === 0) return;
-
-        setIsSpinning(true);
-        setResult(null);
-
-        // These are safe in event handlers (not during render) - suppressing false positive warnings
-        // eslint-disable-next-line
-        const spins = 5 + Math.random() * 5;
-        // eslint-disable-next-line
-        const extraDegrees = Math.random() * 360;
-        const totalRotation = spins * 360 + extraDegrees;
-
-        const currentRotation = rotation;
-        const duration = 4000;
-        // eslint-disable-next-line
-        const startTime = Date.now();
-
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            const newRotation = currentRotation + totalRotation * easeOut;
-
-            setRotation(newRotation % 360);
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                setIsSpinning(false);
-                determineWinner(newRotation);
-            }
-        };
-
-        animate();
     };
 
     const determineWinner = (finalRotation: number) => {
@@ -433,6 +500,43 @@ export const LuckyWheel = () => {
         setResult(items[winningIndex].text);
     };
 
+    const spinWheel = () => {
+        if (spinningRef.current || items.length === 0) return;
+
+        spinningRef.current = true;
+        setIsSpinning(true);
+        setResult(null);
+
+        // Random values are only produced here, inside the event handler, never during render
+        const spins = 5 + Math.random() * 5;
+        const extraDegrees = Math.random() * 360;
+        const totalRotation = spins * 360 + extraDegrees;
+
+        const currentRotation = rotationRef.current;
+        const startTime = performance.now();
+
+        // Only the CSS transform is written per frame, so the browser composites the rotation
+        // without repainting the canvas or re-rendering React.
+        const animate = (time: number) => {
+            const progress = Math.min((time - startTime) / SPIN_DURATION_MS, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const newRotation = currentRotation + totalRotation * easeOut;
+
+            setWheelRotation(newRotation % 360);
+
+            if (progress < 1) {
+                spinFrameRef.current = requestAnimationFrame(animate);
+            } else {
+                spinFrameRef.current = 0;
+                spinningRef.current = false;
+                setIsSpinning(false);
+                determineWinner(newRotation);
+            }
+        };
+
+        spinFrameRef.current = requestAnimationFrame(animate);
+    };
+
     const handleEdit = () => {
         setEditText(items.map(item => item.text).join('\n'));
         setShowEditModal(true);
@@ -450,7 +554,7 @@ export const LuckyWheel = () => {
 
         const newItems: WheelItem[] = lines.map((text, index) => {
             // Limit each item to 50 characters
-            const truncatedText = text.slice(0, 50);
+            const truncatedText = text.slice(0, MAX_ITEMS_CHARS);
             return {
                 id: String(index + 1),
                 text: truncatedText,
@@ -515,8 +619,6 @@ export const LuckyWheel = () => {
         setShowCopySnackbar(true);
     };
 
-    const canvasSize = isMobile ? 300 : 450;
-
     return (
         <ProjectLayout
             title="Lucky Wheel"
@@ -566,23 +668,45 @@ export const LuckyWheel = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        bgcolor: 'rgba(255, 255, 255, 0.35)',
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)',
+                        // Translucent on purpose: a backdrop-filter here would force the browser to
+                        // re-blur the animating page background on every spin frame.
+                        bgcolor: 'rgba(255, 255, 255, 0.55)',
                         borderColor: 'rgba(255, 255, 255, 0.6)',
                     }}
                 >
-                    {/* Wheel Canvas */}
-                    <Box onClick={spinWheel} sx={{ cursor: isSpinning ? 'wait' : 'pointer' }}>
-                        <canvas
-                            ref={canvasRef}
-                            width={canvasSize}
-                            height={canvasSize}
-                            style={{
+                    {/* Wheel: rotating slice layer + static frame layer */}
+                    <Box
+                        onClick={spinWheel}
+                        onKeyDown={event => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                spinWheel();
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Spin the wheel"
+                        sx={{ position: 'relative', lineHeight: 0, cursor: isSpinning ? 'wait' : 'pointer', touchAction: 'manipulation' }}
+                    >
+                        <Box
+                            ref={wheelCanvasRef}
+                            component="canvas"
+                            role="img"
+                            aria-label={`Wheel with ${items.length} options`}
+                            sx={{
+                                display: 'block',
+                                width: canvasSize,
                                 maxWidth: '100%',
-                                filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
-                                transition: 'transform 0.2s',
+                                aspectRatio: '1 / 1',
+                                transform: 'rotate(0deg)',
+                                willChange: 'transform',
                             }}
+                        />
+                        <Box
+                            ref={frameCanvasRef}
+                            component="canvas"
+                            aria-hidden="true"
+                            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
                         />
                     </Box>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>

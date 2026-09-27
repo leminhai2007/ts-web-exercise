@@ -3,56 +3,33 @@
  *
  * Full-viewport background image shared by every page. The image is tiled horizontally and the
  * scene drifts left continuously, so the view travels from left to right over the background.
- * Movement is JS-driven (requestAnimationFrame) and pauses while the tab is hidden, so returning
- * to the page resumes in place with no catch-up freeze, and the offset wraps each tile width
- * seamlessly.
+ * The drift is a pure CSS `transform` keyframe animation, so the browser composites it entirely on
+ * the GPU/compositor thread and the main thread stays free (this matters on pages that animate
+ * their own content, e.g. the Lucky Wheel spin). The animation is paused while the tab is hidden,
+ * so returning to the page resumes in place with no catch-up freeze, and the loop is
+ * pixel-identical (seamless) because it steps exactly one tile width.
  *
  * Related docs (update if this component changes): docs/STYLES.md
  */
 
-import { useEffect, useRef } from 'react';
-import { Box } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, keyframes } from '@mui/material';
 
 const TILE_VH = 177.78; // tile width in vh: a 16:9 image scaled to 100vh tall (16 / 9 * 100)
-const SPEED_VH_PER_SEC = TILE_VH / 40; // one full tile scrolls by every 40s
+const DRIFT_SECONDS = 40; // one full tile scrolls by every 40s
+
+const driftLeft = keyframes`
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-${TILE_VH}vh, 0, 0); }
+`;
 
 export const AnimatedBackground = () => {
-    const stripRef = useRef<HTMLDivElement | null>(null);
+    const [paused, setPaused] = useState(false);
 
     useEffect(() => {
-        let rafId = 0;
-        let offsetVh = 0;
-        let lastTime = 0;
-
-        const step = (time: number) => {
-            const strip = stripRef.current;
-            if (!strip) return;
-            const dtMs = lastTime ? time - lastTime : 0;
-            lastTime = time;
-            offsetVh = (offsetVh + (SPEED_VH_PER_SEC * dtMs) / 1000) % TILE_VH;
-            strip.style.transform = `translateX(${-offsetVh * (window.innerHeight / 100)}px)`;
-            rafId = requestAnimationFrame(step);
-        };
-        const start = () => {
-            if (rafId) return;
-            lastTime = 0;
-            rafId = requestAnimationFrame(step);
-        };
-        const stop = () => {
-            cancelAnimationFrame(rafId);
-            rafId = 0;
-        };
-        const onVisibilityChange = () => {
-            if (document.hidden) stop();
-            else start();
-        };
-
+        const onVisibilityChange = () => setPaused(document.hidden);
         document.addEventListener('visibilitychange', onVisibilityChange);
-        start();
-        return () => {
-            document.removeEventListener('visibilitychange', onVisibilityChange);
-            stop();
-        };
+        return () => document.removeEventListener('visibilitychange', onVisibilityChange);
     }, []);
 
     return (
@@ -70,7 +47,6 @@ export const AnimatedBackground = () => {
             }}
         >
             <Box
-                ref={stripRef}
                 sx={{
                     position: 'absolute',
                     top: 0,
@@ -81,6 +57,8 @@ export const AnimatedBackground = () => {
                     backgroundSize: 'auto 100vh',
                     backgroundPosition: 'left center',
                     backgroundRepeat: 'repeat-x',
+                    animation: `${driftLeft} ${DRIFT_SECONDS}s linear infinite`,
+                    animationPlayState: paused ? 'paused' : 'running',
                     willChange: 'transform',
                 }}
             />
