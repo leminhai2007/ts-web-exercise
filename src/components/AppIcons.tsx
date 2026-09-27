@@ -14,6 +14,7 @@ import {
     faArrowDown,
     faArrowLeft,
     faArrowRight,
+    faArrowRightArrowLeft,
     faArrowUp,
     faArrowsRotate,
     faBell,
@@ -111,6 +112,7 @@ const CloudOffIcon = (props: IconProps) => <AppIcon icon={faCloudRain} {...props
 const TimerIcon = (props: IconProps) => <AppIcon icon={faStopwatch} {...props} />;
 const CopyIcon = (props: IconProps) => <AppIcon icon={faCopy} {...props} />;
 const BellIcon = (props: IconProps) => <AppIcon icon={faBell} {...props} />;
+const SwapTimeIcon = (props: IconProps) => <AppIcon icon={faArrowRightArrowLeft} {...props} />;
 
 // Visibility / background
 const EyeIcon = (props: IconProps) => <AppIcon icon={faEye} {...props} />;
@@ -175,6 +177,7 @@ export {
     TimerIcon,
     CopyIcon,
     BellIcon,
+    SwapTimeIcon,
     PlayIcon,
     PauseIcon,
     StopIcon,

@@ -23,6 +23,10 @@
  *      the outer ring is a clock-face dial of 60 uniform ticks that fill in as the current
  *      round progresses, the inner ring is one arc segment per round, and the digital clock
  *      fits inside the center.
+ *    - Under the counter name a clickable total-duration value shows the time still left for the
+ *      whole counter out of its full length; clicking flips it to the time already worked (and
+ *      back), with a swap icon, so the user can see either when the counter ends or how long they
+ *      have worked.
  * 3. Alerts
  *    - Short chime + push notification at every phase boundary
  *    - Longer alarm when all rounds complete; it stops on its own after a while or when dismissed
@@ -55,6 +59,7 @@ import {
     Stack,
     Divider,
     Tooltip,
+    ButtonBase,
 } from '@mui/material';
 import {
     TimerIcon,
@@ -67,6 +72,7 @@ import {
     StopIcon,
     RefreshIcon,
     BellIcon,
+    SwapTimeIcon,
     ArrowUpward,
     ArrowDownward,
     EyeIcon,
@@ -411,6 +417,7 @@ export const PomodoroClock = () => {
     const [run, setRun] = useState<RunState | null>(null);
     const [completionOpen, setCompletionOpen] = useState(false);
     const [transparentBg, setTransparentBg] = useState(false);
+    const [showTotalElapsed, setShowTotalElapsed] = useState(false);
     const alarmIntervalRef = useRef<number | null>(null);
     const runRef = useRef<RunState | null>(null);
     const notificationsRef = useRef<boolean>(notificationsEnabled);
@@ -531,6 +538,7 @@ export const PomodoroClock = () => {
 
     const handleStartCounter = (counter: PomodoroCounter) => {
         const steps = buildSteps(counter);
+        setShowTotalElapsed(false);
         setRun(() => ({
             counter,
             counterName: counter.name,
@@ -745,6 +753,11 @@ export const PomodoroClock = () => {
             if (number === step.round) return roundProgress / roundTotalSeconds;
             return 0;
         });
+        const totalRunSeconds = run.steps.reduce((sum, entry) => sum + entry.seconds, 0);
+        const upcomingSeconds = run.finished ? 0 : run.steps.slice(run.currentIndex + 1).reduce((sum, entry) => sum + entry.seconds, 0);
+        const totalRemainingMs = run.finished ? 0 : Math.max(0, run.remainingMs) + upcomingSeconds * 1000;
+        const totalElapsedMs = Math.max(0, totalRunSeconds * 1000 - totalRemainingMs);
+        const totalDisplayMs = showTotalElapsed ? totalElapsedMs : totalRemainingMs;
 
         return (
             <ProjectLayout title="Pomodoro Clock" icon={<TimerIcon />}>
@@ -770,9 +783,32 @@ export const PomodoroClock = () => {
                             {transparentBg ? <EyeIcon /> : <EyeOffIcon />}
                         </IconButton>
                     </Tooltip>
-                    <Typography variant="overline" color="text.secondary">
-                        {run.counterName}
-                    </Typography>
+                    <Stack spacing={0.5} sx={{ alignItems: 'center' }}>
+                        <Typography variant="overline" color="text.secondary">
+                            {run.counterName}
+                        </Typography>
+                        <ButtonBase
+                            onClick={() => setShowTotalElapsed(prev => !prev)}
+                            aria-label={showTotalElapsed ? 'Show remaining total time' : 'Show elapsed total time'}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.75,
+                                borderRadius: 1,
+                                px: 1,
+                                py: 0.5,
+                                '&:hover': { bgcolor: 'action.hover' },
+                            }}
+                        >
+                            <SwapTimeIcon fontSize="small" />
+                            <Typography variant="h6" sx={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+                                {formatCountdown(totalDisplayMs)}
+                                <Box component="span" sx={{ color: 'text.secondary', ml: 0.5 }}>
+                                    / {formatCountdown(totalRunSeconds * 1000)}
+                                </Box>
+                            </Typography>
+                        </ButtonBase>
+                    </Stack>
 
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
                         <Box sx={{ position: 'relative', width: { xs: 340, sm: 470 }, height: { xs: 340, sm: 470 } }}>
