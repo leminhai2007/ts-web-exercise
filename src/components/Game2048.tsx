@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Stack } from '@mui/material';
+import { Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Stack, alpha } from '@mui/material';
 import { GameIcon, NewGameIcon } from './AppIcons';
 import { ProjectLayout } from './ProjectLayout';
 
@@ -328,14 +328,24 @@ export const Game2048 = () => {
                         <NewGameIcon />
                     </IconButton>
                 </Stack>
-                <Paper elevation={3} sx={{ p: { xs: 0.5, sm: 3 }, borderRadius: 0, bgcolor: 'background.paper', mx: { xs: 0.5, sm: 0 } }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: { xs: 0.5, sm: 1.5 },
+                        mx: { xs: 0.5, sm: 0 },
+                        bgcolor: alpha('#ffffff', 0.55),
+                        border: '2px solid',
+                        borderColor: alpha('#ffffff', 0.85),
+                        boxShadow: '0 10px 26px rgba(46, 36, 24, 0.22)',
+                    }}
+                >
                     <Box
                         sx={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(4, 1fr)',
                             gap: { xs: 0.5, sm: 2 },
-                            p: { xs: 0.5, sm: 2 },
-                            bgcolor: 'divider',
+                            p: { xs: 0.5, sm: 1 },
+                            bgcolor: alpha('#2e2418', 0.12),
                             borderRadius: 0,
                             maxWidth: '100%',
                             touchAction: 'none',

@@ -425,13 +425,13 @@ export const LuckyWheel = () => {
 
         // Static layer: rims, hub and pointer stay upright while the slices spin.
         frameCtx.beginPath();
-        frameCtx.arc(center, center, radius + 4, 0, 2 * Math.PI);
-        frameCtx.lineWidth = 8;
+        frameCtx.arc(center, center, radius + 2, 0, 2 * Math.PI);
+        frameCtx.lineWidth = 4;
         frameCtx.strokeStyle = '#3a2d1f';
         frameCtx.stroke();
         frameCtx.beginPath();
-        frameCtx.arc(center, center, radius - 2, 0, 2 * Math.PI);
-        frameCtx.lineWidth = 3;
+        frameCtx.arc(center, center, radius - 1, 0, 2 * Math.PI);
+        frameCtx.lineWidth = 2;
         frameCtx.strokeStyle = '#3a2d1f';
         frameCtx.stroke();
 
