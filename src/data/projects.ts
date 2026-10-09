@@ -1,6 +1,6 @@
 // Related docs (update if this file changes): docs/NEW_PROJECT_TEMPLATE.md (project registration)
 import type { Project } from '../types/Project';
-import { DataManagerIcon, GameIcon, MedalIcon, SchoolIcon, SudokuIcon, TimerIcon, WheelIcon } from '../components/AppIcons';
+import { BlocksIcon, DataManagerIcon, GameIcon, MedalIcon, SchoolIcon, SudokuIcon, TimerIcon, WheelIcon } from '../components/AppIcons';
 
 export const projects: Project[] = [
     {
@@ -34,6 +34,14 @@ export const projects: Project[] = [
         categories: ['tool', 'education'],
         path: '/flash-cards',
         icon: SchoolIcon,
+    },
+    {
+        id: 'match-blocks',
+        name: 'Match Blocks',
+        description: 'Match 3 puzzle of colorful blocks. Line up 3 or more and forge striped blocks and color bombs from bigger matches.',
+        categories: ['game', 'puzzle'],
+        path: '/match-blocks',
+        icon: BlocksIcon,
     },
     {
         id: 'data-manager',

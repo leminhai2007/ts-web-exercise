@@ -17,15 +17,17 @@
  *    format version. The file name also contains the domain, so moved backups stay identifiable.
  * 2. Import - pick a backup file, review its origin and contents, then choose which projects to
  *    restore. The recorded origin is surfaced prominently so users can confirm a domain move.
- * 3. Override on conflict - 2048 and Sudoku replace their saved state; if the target origin already
- *    has data the user is asked to confirm before overwriting (and can skip individual projects).
+ * 3. Override on conflict - 2048, Sudoku, Habit Tracker and Match Blocks replace their saved state;
+ *    if the target origin already has data the user is asked to confirm before overwriting (and can
+ *    skip individual projects).
  * 4. Merge on conflict - Lucky Wheel, Flash Cards and Pomodoro Clock append imported entries to
  *    existing data so nothing is lost; imported ids are regenerated to avoid collisions.
  *
  * STORAGE:
  * - This page keeps no data of its own; it reads and writes the same localStorage keys used by the
  *   other projects (game2048_state, sudoku_state, sudoku_saved_games, luckyWheels,
- *   flashcard-collections, habit-tracker-habits, pomodoro-counters).
+ *   flashcard-collections, habit-tracker-habits, pomodoro-counters, match3-state,
+ *   match3-records).
  * - Backup files are JSON and record the origin they were exported from.
  */
 
@@ -151,6 +153,21 @@ const BACKUP_PROJECTS: BackupProjectDef[] = [
         summarize: (data: Record<string, unknown>) => {
             const counters = data['pomodoro-counters'] as unknown[] | undefined;
             return Array.isArray(counters) && counters.length > 0 ? `${counters.length} counter(s)` : 'No saved counters';
+        },
+    },
+    {
+        id: 'match-blocks',
+        name: 'Match Blocks',
+        description: 'Current board, score and records.',
+        behavior: 'override',
+        storageKeys: ['match3-state', 'match3-records'],
+        summarize: (data: Record<string, unknown>) => {
+            const state = data['match3-state'] as { score?: number } | undefined;
+            const records = data['match3-records'] as { bestScore?: number } | undefined;
+            const parts: string[] = [];
+            if (state && typeof state.score === 'number') parts.push(`current score ${state.score}`);
+            if (records && typeof records.bestScore === 'number') parts.push(`best ${records.bestScore}`);
+            return parts.length > 0 ? parts.join(', ') : 'No saved game';
         },
     },
 ];

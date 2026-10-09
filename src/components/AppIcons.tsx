@@ -19,6 +19,7 @@ import {
     faArrowsRotate,
     faBell,
     faCalculator,
+    faCircleQuestion,
     faCloud,
     faCloudRain,
     faCopy,
@@ -31,6 +32,7 @@ import {
     faFlag,
     faFloppyDisk,
     faFolderOpen,
+    faCubes,
     faGamepad,
     faGraduationCap,
     faHashtag,
@@ -52,6 +54,7 @@ import {
     faTrash,
     faTrophy,
     faUpload,
+    faWandMagicSparkles,
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
@@ -105,6 +108,9 @@ const ShuffleIcon = (props: IconProps) => <AppIcon icon={faShuffle} {...props} /
 const RandomIcon = (props: IconProps) => <AppIcon icon={faDice} {...props} />;
 const WheelIcon = (props: IconProps) => <AppIcon icon={faDharmachakra} {...props} />;
 const GameIcon = (props: IconProps) => <AppIcon icon={faGamepad} {...props} />;
+const BlocksIcon = (props: IconProps) => <AppIcon icon={faCubes} {...props} />;
+const SparkleIcon = (props: IconProps) => <AppIcon icon={faWandMagicSparkles} {...props} />;
+const HelpIcon = (props: IconProps) => <AppIcon icon={faCircleQuestion} {...props} />;
 
 // Media / status
 const CloudIcon = (props: IconProps) => <AppIcon icon={faCloud} {...props} />;
@@ -172,6 +178,9 @@ export {
     RandomIcon,
     WheelIcon,
     GameIcon,
+    BlocksIcon,
+    SparkleIcon,
+    HelpIcon,
     CloudIcon,
     CloudOffIcon,
     TimerIcon,
